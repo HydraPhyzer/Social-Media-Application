@@ -22,6 +22,7 @@ import Snackbar from "@mui/material/Snackbar";
 import LinearProgress, {
   LinearProgressProps,
 } from "@mui/material/LinearProgress";
+import CustomizedSnackbars from "../../Components/Toast/Toast";
 
 function LinearProgressWithLabel(
   props: LinearProgressProps & { value: number }
@@ -43,6 +44,11 @@ interface FileWithPath extends File {
   name: string;
   preview: string;
 }
+type PropsType = {
+  Message: string;
+  Visible: boolean;
+  severity: "error" | "warning" | "info" | "success";
+};
 
 const SignUp = () => {
   //Hooks Here
@@ -51,6 +57,11 @@ const SignUp = () => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [OpenSnackbar, SetOpenSnackbar] = useState(false);
   const [Progress, SetProgress] = useState<number>(0);
+  const [ShowToast, setShowToast] = useState<PropsType>({
+    Message: "",
+    Visible: false,
+    severity: "error",
+  });
 
   //Setting Theme Using Redux
   const Mode = useSelector((State: any) => State.Mode);
@@ -126,18 +137,35 @@ const SignUp = () => {
       "PicturePath",
       File[0] ? (File[0] as FileWithPath).path : ""
     );
-    let Res = await Axios.post("/auth/register", Formdata, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      ...config,
-    }).then(() => {
-      SetOpenSnackbar(true);
-      resetForm({ values: "" });
-      setFile([]);
-      SetProgress(0);
-      Router.push("/login");
-    });
+
+    try {
+      let Res = await Axios.post("/auth/register", Formdata, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        ...config,
+      }).then(() => {
+        setFile([]);
+        SetProgress(0);
+        setShowToast({
+          ...ShowToast,
+          Message: "Successfully Signed Up",
+          Visible: true,
+          severity:"success"
+        });
+        resetForm({ values: "" });
+        Router.push("/login");
+      });
+    } catch (Error: any) {
+      setShowToast({
+        ...ShowToast,
+        Message: Error?.response?.data.Error,
+        Visible: true,
+      });
+    }
+  };
+  let UpdateState = () => {
+    setShowToast({ ...ShowToast, Visible: false });
   };
 
   return (
@@ -367,7 +395,7 @@ const SignUp = () => {
           </Box>
         </section>
       </div>
-      <div>
+      {/* <div>
         <Snackbar
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
           open={OpenSnackbar}
@@ -376,6 +404,18 @@ const SignUp = () => {
           key={"top" + "right"}
           message="Successfully Signed Up"
         />
+      </div> */}
+      <div>
+        {ShowToast.Visible ? (
+          <CustomizedSnackbars
+            Props={ShowToast}
+            Func={() => {
+              UpdateState();
+            }}
+          />
+        ) : (
+          ""
+        )}
       </div>
     </Box>
   );

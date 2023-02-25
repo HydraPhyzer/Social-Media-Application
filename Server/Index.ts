@@ -14,13 +14,13 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import User from "./Schema/User";
 import console from "console";
-
 // Require Statements
 let Cors = require("cors");
 let Morgan = require("morgan");
 const Multer = require("multer");
 let App = Express();
-const PORT = process.env.PORT || 6001;
+let JWT = require("jsonwebtoken");
+const PORT = process.env.PORT || 7001;
 
 // const __Filename=fileURLToPath(require('import-meta').url)
 // const __dirname=Path.dirname(__Filename)
@@ -37,7 +37,7 @@ App.use(Helmet());
 App.use("/Assets", Express.static(Path.join(__dirname, "Public/Assets")));
 // Code Part
 
-let ImageCode: string="";
+let ImageCode: string = "";
 const Storage = Multer.diskStorage({
   destination: function (Req: any, File: any, cb: any) {
     cb(null, "Public/Assets");
@@ -79,6 +79,33 @@ App.post("/auth/register", Upload.single("Image"), async (Req, Res) => {
   } catch (err) {
     Res.status(500).json({ Error: "Unable to Register New User" });
   }
+});
+
+App.post("/auth/login", async (Req, Res) => {
+  //Getting Data From Frontend
+  const { Email, Password } = Req.body;
+  //Getting Data From Backend
+  const SearchUser = await User.findOne({ Email: Email });
+  if (!SearchUser) {
+    Res.status(400).json({ Error: "User Not Found" });
+    return;
+  }
+  //Comparing Password
+  const PasswordHash =await bcrypt.compare(Password,SearchUser?.Password ? SearchUser?.Password : "HelloWorld");
+
+  if (!PasswordHash){
+    Res.status(400).json({ Error: "Invalid Credentials" });
+    return;
+  }
+  if(PasswordHash && SearchUser)
+  {
+    const Token = JWT.sign({ ID: SearchUser?._id }, "HelloWorld");
+    delete SearchUser?.Password;
+    Res.status(200).json({ Token, SearchUser });
+    console.log(Req.body);
+  }
+
+  //Generating Token
 });
 
 App.post("/stats", Upload.single("Image"), function (req, res) {

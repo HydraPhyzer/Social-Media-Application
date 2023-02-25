@@ -14,9 +14,13 @@ export const AuthSlice=createSlice({
         SetMode:(State)=>{
             State.Mode = State.Mode==="Light" ? "Dark":"Light";
         },
+        SetLogIn:(State,Action)=>{
+            State.User=Action.payload.User;
+            State.Token=Action.payload.Token;
+        }
     }
 
 })
 
-export const {SetMode} =AuthSlice.actions;
+export const {SetMode,SetLogIn} =AuthSlice.actions;
 export default AuthSlice.reducer;

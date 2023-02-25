@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import { useSelector, useDispatch } from "react-redux";
 import { createTheme, ThemeOptions } from "@mui/material/styles";
@@ -16,11 +16,24 @@ import InputBase from "@mui/material/InputBase";
 import { Box, Button, FormControl, InputLabel, TextField } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-import { SetMode } from "../../Redux/AuthReducer";
-import Dropzone from "react-dropzone";
+import { SetMode,SetLogIn} from "../../Redux/AuthReducer";
+import Axios from "../../Components/Axios/Axios";
+import CustomizedSnackbars from "../../Components/Toast/Toast";
+
+
+type PropsType = {
+    Message: string;
+    Visible: boolean;
+    severity: "error" | "warning" | "info" | "success";
+};
 
 const Login = () => {
   let Router = useRouter();
+  const [ShowToast, setShowToast] = useState<PropsType>({
+    Message: "",
+    Visible: false,
+    severity: "error",
+  });
   const Matches = useMediaQuery("(max-width:600px)");
 
   const Mode = useSelector((State: any) => State.Mode);
@@ -43,6 +56,34 @@ const Login = () => {
       .max(50, "Password Too Long")
       .required("Password is Required !!"),
   });
+  let LogIn = async (values: any, resetForm: any) => {
+    try {
+      let Res = await Axios.post("/auth/login", values).then((Result) => {
+        setShowToast({
+          ...ShowToast,
+          Message: "Successfully Logged In",
+          Visible: true,
+          severity:"success"
+        });
+        Dispatch(SetLogIn({
+          User:Result.data.SearchUser,
+          Token:Result.data.Token
+        }))
+        resetForm();
+        console.log(Result);
+        Router.push("/");
+      });
+    } catch (Error: any) {
+      setShowToast({
+        ...ShowToast,
+        Message: Error?.response?.data.Error,
+        Visible: true,
+      });
+    }
+  };
+  let UpdateState=()=>{
+    setShowToast({...ShowToast,Visible:false});
+  }
 
   return (
     <Box
@@ -92,8 +133,8 @@ const Login = () => {
                 Password: "",
               }}
               validationSchema={LoginSchema}
-              onSubmit={(values) => {
-                console.log(values);
+              onSubmit={(values, { resetForm }) => {
+                LogIn(values, resetForm);
               }}
             >
               {({ errors, touched }) => (
@@ -171,6 +212,7 @@ const Login = () => {
               )}
             </Formik>
           </Box>
+          <div>{ShowToast.Visible ? <CustomizedSnackbars Props={ShowToast} Func={()=>{UpdateState()}} /> : ""}</div>
         </section>
       </div>
     </Box>
