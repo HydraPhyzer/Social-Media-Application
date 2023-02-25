@@ -99,8 +99,9 @@ const Login = () => {
               {({ errors, touched }) => (
                 <Form className={`flex flex-col`}>
                   <FormControl sx={{ m: 1 }} variant="standard">
-                    <TextField
-                      id="password-input"
+                    <Field
+                      as={TextField}
+                      name="Email"
                       label="Enter Your Email"
                       variant="filled"
                       size="small"
@@ -117,8 +118,9 @@ const Login = () => {
                   </FormControl>
 
                   <FormControl sx={{ m: 1 }} variant="standard">
-                    <TextField
-                      id="password-input"
+                    <Field
+                      as={TextField}
+                      name="Password"
                       label="Enter Your Password"
                       variant="filled"
                       size="small"
