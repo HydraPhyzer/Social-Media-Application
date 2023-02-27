@@ -13,7 +13,7 @@ import { CustomTheme } from "../../Themes/CustomTheme";
 import MenuIcon from "@mui/icons-material/Menu";
 
 const SmallHeader = () => {
-  const [Show, setShow] = React.useState(true);
+  const [Show, setShow] = React.useState(false);
   const Mode = useSelector((State: any) => State.Mode);
   const Dispatch = useDispatch();
   let Theme = useMemo(() => {
@@ -26,7 +26,7 @@ const SmallHeader = () => {
   };
 
   return (
-    <div className="">
+    <div>
       <div className="flex gap-x-5 items-center justify-between">
         <p
           className="text-[1.3rem] font-bold"
@@ -70,7 +70,7 @@ const SmallHeader = () => {
             </IconButton>
           </div>
 
-          <div className="flex justify-between items-center gap-x-3">
+          <div className="flex justify-between items-center gap-x-3 my-3">
             <IconButton
               onClick={SetMod}
               style={{ color: Theme.Palette.Primary.Main }}

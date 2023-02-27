@@ -26,7 +26,7 @@ const Home: NextPage = () => {
       </Head>
 
       <div>
-        <header className="w-[100vw]" style={{ backgroundColor: Theme.Palette.Background.Alt}}>
+        <header className="w-[100vw] shadow-md" style={{ backgroundColor: Theme.Palette.Background.Alt}}>
           <div className="max-w-[1280px] mx-auto p-3">{Matches ? <SmallHeader /> : <LargeHeader />}</div>
         </header>
       </div>

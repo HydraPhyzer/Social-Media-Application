@@ -22,7 +22,7 @@ const LargeHeader = () => {
   let SetMod = () => {
     Dispatch(SetMode());
   };
-
+  
   return (
     <div className="flex justify-between" style={{ backgroundColor: Theme.Palette.Background.Alt }}>
       <div className="flex gap-x-5 items-center">
