@@ -25,7 +25,7 @@ const LargeHeader = () => {
   
   return (
     <div className="flex justify-between" style={{ backgroundColor: Theme.Palette.Background.Alt }}>
-      <div className="flex gap-x-5 items-center">
+      <div className="flex gap-x-5 items-center ">
         <p className="text-[1.3rem] font-bold" style={{color: Theme.Palette.Primary.Main}}>Connectify</p>
         <div className="bg-white flex items-center px-2 text-black rounded-md" style={{ backgroundColor: Theme.Palette.Background.Default }}>
           <input

@@ -53,6 +53,7 @@ const SmallHeader = () => {
           <Divider
             sx={{ border: 1, my: 1, color: Theme.Palette.Primary.Main }}
           />
+          ?
           <div
             className="bg-white flex justify-between my-1 items-center px-2 text-black rounded-md"
             style={{ backgroundColor: Theme.Palette.Background.Default }}
