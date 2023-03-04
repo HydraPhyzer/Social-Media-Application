@@ -22,7 +22,7 @@ const Sponsers = () => {
         <p className="font-medium">Sponsered</p>
         <p style={{ color: Theme.Palette.Neutral.MediumMain }}>Create Ad</p>
       </div>
-      <div style={{ width: "150px", height: "150px",margin:"auto" }}>
+      <div style={{ margin: "auto" }}>
         <Image
           src="https://cdn.shopify.com/s/files/1/0557/9872/6852/products/Skin-White-7-Day-Beauty-Cream-250gm_2400x.jpg?v=1618649970"
           style={{ width: "150px", height: "150px" }}

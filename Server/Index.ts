@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import bcrypt from "bcrypt";
 import User from "./Schema/User";
+import Post from "./Schema/Post"
 import console from "console";
 // Require Statements
 let Cors = require("cors");
@@ -81,6 +82,7 @@ App.post("/auth/register", Upload.single("Image"), async (Req, Res) => {
   }
 });
 
+//Login User
 App.post("/auth/login", async (Req, Res) => {
   //Getting Data From Frontend
   const { Email, Password } = Req.body;
@@ -91,14 +93,16 @@ App.post("/auth/login", async (Req, Res) => {
     return;
   }
   //Comparing Password
-  const PasswordHash =await bcrypt.compare(Password,SearchUser?.Password ? SearchUser?.Password : "HelloWorld");
+  const PasswordHash = await bcrypt.compare(
+    Password,
+    SearchUser?.Password ? SearchUser?.Password : "HelloWorld"
+  );
 
-  if (!PasswordHash){
+  if (!PasswordHash) {
     Res.status(400).json({ Error: "Invalid Credentials" });
     return;
   }
-  if(PasswordHash && SearchUser)
-  {
+  if (PasswordHash && SearchUser) {
     const Token = JWT.sign({ ID: SearchUser?._id }, "HelloWorld");
     delete SearchUser?.Password;
     Res.status(200).json({ Token, SearchUser });
@@ -108,6 +112,28 @@ App.post("/auth/login", async (Req, Res) => {
   //Generating Token
 });
 
+//Creating Post
+App.post("/createpost", Upload.single("Image"), async (Req, Res) => {
+  try {
+    const { UserId, Description } = Req.body;
+    const FetchUser = await User.findOne({ _id: UserId });
+    if (FetchUser) {
+      const { FirstName, LastName, PicturePath:UserPicturePath}=FetchUser;
+      const PostPicturePath=Req.body?.PicturePath? ImageCode + Path.extname(Req.body?.PicturePath):"";
+
+      const NewPost=await new Post({FirstName,LastName,Description,UserPicturePath,UserId,PostPicturePath})
+      .save()
+      .then(async()=>{
+        let AllPost=await Post.find();
+        Res.status(201).json(AllPost);
+      })
+    }
+  } catch (Error) {
+    Res.status(400).json({Error:"Unable to Upload Post"});
+  }
+});
+
+//Testing Multer
 App.post("/stats", Upload.single("Image"), function (req, res) {
   console.log(req.file, req.body);
 });

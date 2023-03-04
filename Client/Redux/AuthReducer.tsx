@@ -21,10 +21,13 @@ export const AuthSlice=createSlice({
         SetLogOut:(State)=>{
             State.User=null;
             State.Token=null;
+        },
+        SetPost:(State,Action)=>{
+            State.Posts=Action.payload.Post
         }
     }
 
 })
 
-export const {SetMode,SetLogIn,SetLogOut} =AuthSlice.actions;
+export const {SetMode,SetLogIn,SetLogOut,SetPost} =AuthSlice.actions;
 export default AuthSlice.reducer;
