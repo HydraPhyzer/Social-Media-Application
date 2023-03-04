@@ -22,6 +22,7 @@ const PostSchema = new Mongoose.Schema(
     Likes: {
       type: Map,
       of: Boolean,
+      default:new Map()
     },
 
     Comments: {

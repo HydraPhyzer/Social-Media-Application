@@ -164,7 +164,7 @@ const PostHandler = () => {
       }}
     >
       <div className="Top flex gap-x-2">
-        <Avatar Path="http://localhost:7001/Assets/55d14bd1-4138-4044-a515-3a0ee60d820f.png" />
+      <Avatar Path={`http://localhost:7001/Assets/${User.PicturePath}`} />
         <input
           type="text"
           placeholder="What's On Your Mind !!"

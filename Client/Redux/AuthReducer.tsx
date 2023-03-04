@@ -24,10 +24,13 @@ export const AuthSlice=createSlice({
         },
         SetPost:(State,Action)=>{
             State.Posts=Action.payload.Post
+        },
+        SetUser:(State,Action)=>{
+            State.User=Action.payload.User
         }
     }
 
 })
 
-export const {SetMode,SetLogIn,SetLogOut,SetPost} =AuthSlice.actions;
+export const {SetMode,SetLogIn,SetLogOut,SetPost,SetUser} =AuthSlice.actions;
 export default AuthSlice.reducer;

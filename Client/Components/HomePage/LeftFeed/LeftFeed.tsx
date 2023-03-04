@@ -33,7 +33,7 @@ const LeftFeed = () => {
               className="text-xs"
               style={{ color: Theme.Palette.Neutral.MediumMain }}
             >
-              2 Friends
+              {User?.Friends.length} Friends
             </p>
           </div>
         </div>

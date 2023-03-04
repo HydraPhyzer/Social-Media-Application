@@ -1,33 +1,34 @@
-import React,{useEffect}from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PostHandler from "./PostHandler/PostHandler";
 
-import { createTheme, ThemeOptions} from "@mui/material";
-import { useMemo } from "react";
-import { useSelector } from "react-redux";
-import { ThemeSettings } from "../../Themes/Themes";
-import { CustomTheme } from "../../Themes/CustomTheme";
-import DisplayPosts from "./DisplayPosts"
+import { useDispatch, useSelector } from "react-redux";
+import DisplayPosts from "./DisplayPosts";
+import { SetPost } from "../../../Redux/AuthReducer";
+import Axios from "../../Axios/Axios";
 
 const MiddleFeed = () => {
-
-  const Mode = useSelector((State: any) => State.Mode);
-  let Theme = useMemo(() => {
-    return createTheme(
-      ThemeSettings(Mode) as unknown as ThemeOptions
-    ) as CustomTheme;
-  }, [Mode]);
-
-  const Post = useSelector((State: any) => State.Posts);
+  let Dispatch = useDispatch();
+  let [Render,setRender]=useState(false);
+  let Post=useSelector((State: any) => State.Posts);
 
   useEffect(() => {
-    console.log(Post)
-  },[Post])
-  
+    let GetData = async () => {
+      await Axios.get("/getallposts").then((Res: any) => {
+        Dispatch(SetPost({ Post: Res.data }));
+        setRender(true);
+      });
+    };
+    GetData();
+  }, []);
+
   return (
-    <div
-    >
+    <div className="max-h-[85vh] overflow-scroll">
       <PostHandler />
-      {/* <DisplayPosts/> */}
+
+      {Post && Render &&
+        Post.map((EachPost: any, Ind: number) => {
+          return <DisplayPosts key={Ind} SinglePost={EachPost} />;
+        })}
     </div>
   );
 };
