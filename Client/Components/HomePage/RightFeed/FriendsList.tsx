@@ -38,13 +38,10 @@ const FriendsList = ({ Friends }: any) => {
 
   return (
     <div
-      className="p-3 rounded-md text-sm"
-      style={{ backgroundColor: Theme.Palette.Background.Alt }}
+      className=" p-3 rounded-md text-sm"
     >
-      <p className="font-medium mb-5">Friends List</p>
-
       <div>
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-center">
           <section className="flex items-center gap-x-2">
             <Avatar
               Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}

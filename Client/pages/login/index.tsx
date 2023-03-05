@@ -70,7 +70,6 @@ const Login = () => {
           Token:Result.data.Token
         }))
         resetForm();
-        console.log(Result);
         Router.push("/");
       });
     } catch (Error: any) {

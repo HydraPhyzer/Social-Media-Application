@@ -15,6 +15,7 @@ import bcrypt from "bcrypt";
 import console from "console";
 import User from "./Schema/User";
 import Post from "./Schema/Post";
+import { VerifyToken } from "./Token/JWT";
 // Require Statements
 let Cors = require("cors");
 let Morgan = require("morgan");
@@ -51,10 +52,8 @@ const Storage = Multer.diskStorage({
 const Upload = Multer({ storage: Storage });
 
 //Mongo Connection
-
-// Resuest Section
-App.get("/", (Req, Res) => {
-  Res.send("Hello World");
+App.get("/", VerifyToken, (Req, Res) => {
+  Res.send({ Access: true });
 });
 
 // Register New User
@@ -205,21 +204,37 @@ App.post("/likepost/:id", Upload.single("Image"), async (Req, Res) => {
     const { id } = Req.params;
 
     const FindPost = await Post.findById({ _id: id });
-    const IsLiked= FindPost?.Likes?.get(UserId)
+    const IsLiked = FindPost?.Likes?.get(UserId);
 
-    if(IsLiked){
-      FindPost?.Likes?.delete(UserId)
-    }
-    else{
-      FindPost?.Likes?.set(UserId,true)
+    if (IsLiked) {
+      FindPost?.Likes?.delete(UserId);
+    } else {
+      FindPost?.Likes?.set(UserId, true);
     }
 
-    const UpdatedPost=await Post.findByIdAndUpdate(
+    const UpdatedPost = await Post.findByIdAndUpdate(
       id,
-      {Likes:FindPost?.Likes},
-      {new:true}
-    )
-    Res.status(200).json(UpdatedPost)
+      { Likes: FindPost?.Likes },
+      { new: true }
+    );
+    Res.status(200).json(UpdatedPost);
+  } catch (Error) {
+    Res.status(400).json({ Error: "Unable to Like Post" });
+  }
+});
+
+App.post("/addcomment/:id", Upload.single("Image"), async (Req, Res) => {
+  try {
+    const { UserId, Text } = Req.body;
+    const { id } = Req.params;
+    console.log(Text);
+
+    const FindPost = await Post.findById({ _id: id });
+    if (FindPost) {
+      FindPost?.Comments.push(Text);
+      await FindPost.save();
+      Res.status(200).json(FindPost);
+    }
   } catch (Error) {
     Res.status(400).json({ Error: "Unable to Like Post" });
   }

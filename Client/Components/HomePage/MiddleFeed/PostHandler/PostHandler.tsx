@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   createTheme,
   Divider,
@@ -75,7 +75,7 @@ const PostHandler = () => {
 
   const Mode = useSelector((State: any) => State?.Mode);
   const User = useSelector((State: any) => State?.User);
-  const Dispatch=useDispatch();
+  const Dispatch = useDispatch();
   let Theme = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
@@ -131,27 +131,25 @@ const PostHandler = () => {
         );
       }
 
-      try{
+      try {
         await Axios.post("/createpost", FrmData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
           ...config,
-        }).then((Res)=>{
-          setPost({Description:"",PostPicturePath:""})
-          SetProgress(0)
-          setFile([])
-          Dispatch(SetPost({Post:Res.data}))
+        }).then((Res) => {
+          setPost({ Description: "", PostPicturePath: "" });
+          SetProgress(0);
+          setFile([]);
+          Dispatch(SetPost({ Post: Res.data }));
         });
-      }
-      catch(Error:any){
+      } catch (Error: any) {
         setShowToast({
           ...ShowToast,
           Message: Error?.response?.data.Error,
           Visible: true,
         });
       }
-
     }
   };
 
@@ -164,7 +162,7 @@ const PostHandler = () => {
       }}
     >
       <div className="Top flex gap-x-2">
-      <Avatar Path={`http://localhost:7001/Assets/${User.PicturePath}`} />
+        <Avatar Path={`http://localhost:7001/Assets/${User?.PicturePath}`} />
         <input
           type="text"
           placeholder="What's On Your Mind !!"
@@ -173,7 +171,7 @@ const PostHandler = () => {
           onChange={(E) => {
             SetValues("Description", E.target.value);
           }}
-          value={Post.Description}
+          value={Post?.Description}
         />
       </div>
       <Divider sx={{ my: 2, backgroundColor: Theme.Palette.Neutral.Dark }} />
@@ -181,7 +179,7 @@ const PostHandler = () => {
       {File[0] ? (
         <div className="flex justify-between items-center my-4">
           <img
-            src={Post.PostPicturePath}
+            src={Post?.PostPicturePath}
             style={{
               display: "block",
               width: "100px",

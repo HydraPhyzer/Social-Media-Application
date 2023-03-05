@@ -10,6 +10,11 @@ import Axios from "../../Axios/Axios";
 const RightFeed = () => {
   const Mode = useSelector((State: any) => State.Mode);
   const [FriendList, setFriendList] = React.useState([]);
+  let Theme = useMemo(() => {
+    return createTheme(
+      ThemeSettings(Mode) as unknown as ThemeOptions
+    ) as CustomTheme;
+  }, [Mode]);
 
   const User = useSelector((State: any) => {
     return State?.User;
@@ -29,7 +34,8 @@ const RightFeed = () => {
     <div className="flex flex-col gap-y-5">
       <Sponsers />
 
-      <div className="max-h-[30vh] overflow-scroll">
+      <div className="max-h-[30vh] overflow-scroll rounded-md" style={{ backgroundColor: Theme.Palette.Background.Alt }}>
+      <p className="font-medium p-3">Friends List</p>
       {FriendList.map((Each, Ind) => {
         return <FriendsList Friends={Each} key={Ind} />;
       })}

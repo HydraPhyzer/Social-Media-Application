@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import PostHandler from "./PostHandler/PostHandler";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -8,16 +8,17 @@ import Axios from "../../Axios/Axios";
 
 const MiddleFeed = () => {
   let Dispatch = useDispatch();
-  let [Render,setRender]=useState(false);
-  let Post=useSelector((State: any) => State.Posts);
 
+  let [Render, setRender] = useState(false);
+  let Post = useSelector((State: any) => State.Posts);
+
+  let GetData = async () => {
+    await Axios.get("/getallposts").then((Res: any) => {
+      Dispatch(SetPost({ Post: Res.data }));
+      setRender(true);
+    });
+  };
   useEffect(() => {
-    let GetData = async () => {
-      await Axios.get("/getallposts").then((Res: any) => {
-        Dispatch(SetPost({ Post: Res.data }));
-        setRender(true);
-      });
-    };
     GetData();
   }, []);
 
@@ -25,7 +26,8 @@ const MiddleFeed = () => {
     <div className="max-h-[85vh] overflow-scroll">
       <PostHandler />
 
-      {Post && Render &&
+      {Post &&
+        Render &&
         Post.map((EachPost: any, Ind: number) => {
           return <DisplayPosts key={Ind} SinglePost={EachPost} />;
         })}

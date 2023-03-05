@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Avatar from "../../Avatar/Avatar";
 import { useDispatch, useSelector } from "react-redux";
 import { createTheme, IconButton, ThemeOptions } from "@mui/material";
@@ -13,15 +13,25 @@ import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import Axios from "../../Axios/Axios";
 import FormData from "form-data";
-import { SetUser } from "../../../Redux/AuthReducer";
+import { SetUser, PatchEachPost } from "../../../Redux/AuthReducer";
+import SendIcon from "@mui/icons-material/Send";
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 
 const DisplayPosts = ({ SinglePost }: any) => {
-  let [Likes, setLikes] = useState(SinglePost?.Likes);
-
   const User = useSelector((State: any) => {
     return State?.User;
   });
+
+  const IsLiked = Boolean(SinglePost?.Likes[User?._id]);
+  const LikeCount = Object.keys(SinglePost?.Likes).length;
+  const CommentCount = SinglePost?.Comments?.length;
+  const Comments = SinglePost?.Comments;
+  const [ShowComments, setShowComments] = useState(false);
+
+  const [CommentText, setCommentText] = useState("");
+
   const Mode = useSelector((State: any) => State.Mode);
+
   let Theme = React.useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
@@ -59,14 +69,21 @@ const DisplayPosts = ({ SinglePost }: any) => {
       console.log(Start.data);
     } catch (Error) {}
   };
-  console.log(Likes);
 
   let LikePost = async () => {
     await Axios.post(`likepost/${SinglePost?._id}`, { UserId: User?._id }).then(
       (Res) => {
-        setLikes(Res.data?.Likes);
+        Dispatch(PatchEachPost({ Post: Res.data }));
       }
     );
+  };
+  let AddComment = async () => {
+    await Axios.post(`addcomment/${SinglePost?._id}`, { UserId: User?._id,Text:CommentText }).then(
+      (Res) => {
+        Dispatch(PatchEachPost({ Post: Res.data }));
+      }
+    );
+
   };
 
   return (
@@ -103,7 +120,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
             </div>
           </div>
           <div className="Right">
-            {SinglePost?.UserId == User._id ? (
+            {SinglePost?.UserId == User?._id ? (
               <IconButton>
                 <MoreHorizIcon style={{ color: Theme.Palette.Neutral.Main }} />
               </IconButton>
@@ -130,7 +147,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
         ) : null}
 
         {SinglePost?.PostPicturePath ? (
-          <section className="h-[300px] w-[100%] relative my-2 rounded-md">
+          <section className="h-[300px] w-[100%] relative my-2">
             <Image
               src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
               layout="fill"
@@ -146,15 +163,21 @@ const DisplayPosts = ({ SinglePost }: any) => {
           >
             <div>
               <IconButton onClick={LikePost}>
-                <FavoriteIcon className={Likes[`${User?._id}`]==true ? "text-red-500":"text-gray-500" }/>
+                <FavoriteIcon
+                  className={IsLiked == true ? "text-red-500" : "text-gray-500"}
+                />
               </IconButton>
-              <span>{Object.keys(Likes).length}</span>
+              <span>{LikeCount}</span>
             </div>
             <div>
-              <IconButton>
+              <IconButton
+                onClick={() => {
+                  setShowComments(!ShowComments);
+                }}
+              >
                 <CommentIcon className="text-green-500" />
               </IconButton>
-              <span>12</span>
+              <span>{CommentCount}</span>
             </div>
             <div>
               <IconButton>
@@ -165,6 +188,35 @@ const DisplayPosts = ({ SinglePost }: any) => {
           </div>
         </section>
       </div>
+
+      {ShowComments ? (
+        <section
+          className="p-3 my-1 rounded-md max-h-[150px] overflow-scroll border-[1px]"
+          style={{
+            backgroundColor: Theme.Palette.Background.Alt,
+            color: Theme.Palette.Neutral.Dark,
+            borderColor:Theme.Palette.Primary.Light
+          }}
+        >
+          <div
+            className="my-1 flex p-2 rounded-md"
+            style={{ backgroundColor: Theme.Palette.Background.Default }}
+          >
+            <input
+              type="text"
+              className="w-[100%] bg-transparent rounded-md outline-none"
+              value={CommentText}
+              onChange={(E) => {
+                setCommentText(E.target.value);
+              }}
+            />
+            <SendIcon onClick={AddComment} className="hover:cursor-pointer" />
+          </div>
+          {Comments.map((EachComm: string,ind:number) => {
+            return <p key={ind}><RadioButtonCheckedIcon fontSize="small" style={{color:Theme.Palette.Primary.Light}} />  {EachComm}</p>;
+          })}
+        </section>
+      ) : null}
     </div>
   );
 };

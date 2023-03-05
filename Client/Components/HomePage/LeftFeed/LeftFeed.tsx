@@ -26,9 +26,9 @@ const LeftFeed = () => {
     <div className="p-3">
       <div className="flex justify-between items-center">
         <div className="Left flex gap-x-2 items-center">
-          <Avatar Path={`http://localhost:7001/Assets/${User.PicturePath}`} />
+          <Avatar Path={`http://localhost:7001/Assets/${User?.PicturePath}`} />
           <div>
-            <p className="text-sm">{User.FirstName + " " + User.LastName}</p>
+            <p className="text-sm">{User?.FirstName + " " + User?.LastName}</p>
             <p
               className="text-xs"
               style={{ color: Theme.Palette.Neutral.MediumMain }}
@@ -78,7 +78,7 @@ const LeftFeed = () => {
 
       <div className="flex gap-x-2">
         <EmailIcon />
-        <p style={{ color: Theme.Palette.Neutral.MediumMain }}>{User.Email}</p>
+        <p style={{ color: Theme.Palette.Neutral.MediumMain }}>{User?.Email}</p>
       </div>
     </div>
   );
