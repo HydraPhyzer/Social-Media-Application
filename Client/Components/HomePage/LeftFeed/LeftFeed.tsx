@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import Avatar from "../../Avatar/Avatar";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -11,6 +11,39 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import EmailIcon from "@mui/icons-material/Email";
 
 const LeftFeed = () => {
+  const User = useSelector((State: any) => {
+    return State?.User;
+  });
+  const Posts = useSelector((State: any) => {
+    return State?.Posts;
+  });
+
+  let UpdateCommenstCount=()=>{
+    let FilteredPosts=Posts?.filter((Each:any)=>{
+      return Each?.UserId===User?._id;
+    })
+
+    return FilteredPosts?.reduce((Acc:number,Post:any)=>{
+      return Acc+Post?.Comments?.length;
+    },0)
+  }
+  let UpdateLikesCount=()=>{
+    let FilteredPosts=Posts?.filter((Each:any)=>{
+      return Each?.UserId===User?._id;
+    })
+
+    return FilteredPosts?.reduce((Acc:number,Post:any)=>{
+      return Acc+Object.keys(Post?.Likes).length;
+    },0)
+  }
+  useEffect(()=>{
+    UpdateCommenstCount();
+    UpdateLikesCount();
+  },[])
+
+  let [CommentCount,setCommentCount]=React.useState(UpdateCommenstCount());
+  let [LikesCount,setLikesCount]=React.useState(UpdateLikesCount());
+
   const Mode = useSelector((State: any) => State.Mode);
   let Theme = useMemo(() => {
     return createTheme(
@@ -18,9 +51,7 @@ const LeftFeed = () => {
     ) as CustomTheme;
   }, [Mode]);
 
-  const User = useSelector((State: any) => {
-    return State?.User;
-  });
+
 
   return (
     <div className="p-3">
@@ -58,19 +89,19 @@ const LeftFeed = () => {
             className="p-[8px]"
             style={{ color: Theme.Palette.Neutral.MediumMain }}
           >
-            20
+            {CommentCount?CommentCount:"0"}
           </p>
         </div>
         <div className="flex justify-between gap-x-2 text-sm items-center">
           <div className="flex gap-x-2 items-center">
-            <FavoriteIcon/>
+            <FavoriteIcon />
             <p>Total Likes</p>
           </div>
           <p
             className="p-[8px]"
             style={{ color: Theme.Palette.Neutral.MediumMain }}
-          >
-            20
+            >
+            {LikesCount?LikesCount:"0"}
           </p>
         </div>
       </div>

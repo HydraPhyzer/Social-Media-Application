@@ -83,7 +83,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
         Dispatch(PatchEachPost({ Post: Res.data }));
       }
     );
-
+      setCommentText("");
   };
 
   return (
