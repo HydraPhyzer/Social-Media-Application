@@ -35,7 +35,9 @@ App.use(Cors());
 App.use(BodyParser.json({ limit: "30mb" }));
 App.use(BodyParser.urlencoded({ limit: "30mb", extended: true }));
 App.use(Morgan("common"));
-App.use(Helmet());
+App.use(Helmet({
+  crossOriginResourcePolicy: false,
+}));
 App.use("/Assets", Express.static(Path.join(__dirname, "Public/Assets")));
 // Code Part
 
@@ -50,6 +52,27 @@ const Storage = Multer.diskStorage({
   },
 });
 const Upload = Multer({ storage: Storage });
+
+const UploadVideo = Multer({
+  storage: Storage,
+  limits: {
+    fileSize: 10000000,
+  },
+  fileFilter(Req: any, File: any, cb: any) {
+    if (!File.originalname.match(/\.(mp4|MPEG-4|mkv)$/)) {
+      return cb(new Error("Please upload a video"));
+    }
+    cb(undefined, true);
+  },
+});
+
+App.post("/uploadvideo", UploadVideo.single("Video"), (Req: any, Res: any) => {
+  try {
+    Res.send(Req.file);
+  } catch (Err: any) {
+    Res.status(400).send({ error: Err.message });
+  }
+});
 
 //Mongo Connection
 App.get("/", VerifyToken, (Req, Res) => {
@@ -111,7 +134,7 @@ App.post("/auth/login", async (Req, Res) => {
 });
 
 //Creating Post
-App.post("/createpost", Upload.single("Image"), async (Req, Res) => {
+App.post("/createpost", Upload.single("Image") || UploadVideo.single("Video"), async (Req, Res) => {
   try {
     const { UserId, Description } = Req.body;
     const FetchUser = await User.findOne({ _id: UserId });

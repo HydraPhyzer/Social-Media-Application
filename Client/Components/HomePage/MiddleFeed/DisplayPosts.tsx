@@ -15,7 +15,7 @@ import Axios from "../../Axios/Axios";
 import FormData from "form-data";
 import { SetUser, PatchEachPost } from "../../../Redux/AuthReducer";
 import SendIcon from "@mui/icons-material/Send";
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 
 const DisplayPosts = ({ SinglePost }: any) => {
   const User = useSelector((State: any) => {
@@ -77,13 +77,15 @@ const DisplayPosts = ({ SinglePost }: any) => {
       }
     );
   };
+
   let AddComment = async () => {
-    await Axios.post(`addcomment/${SinglePost?._id}`, { UserId: User?._id,Text:CommentText }).then(
-      (Res) => {
-        Dispatch(PatchEachPost({ Post: Res.data }));
-      }
-    );
-      setCommentText("");
+    await Axios.post(`addcomment/${SinglePost?._id}`, {
+      UserId: User?._id,
+      Text: CommentText,
+    }).then((Res) => {
+      Dispatch(PatchEachPost({ Post: Res.data }));
+    });
+    setCommentText("");
   };
 
   return (
@@ -148,12 +150,24 @@ const DisplayPosts = ({ SinglePost }: any) => {
 
         {SinglePost?.PostPicturePath ? (
           <section className="h-[300px] w-[100%] relative my-2">
-            <Image
-              src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
-              layout="fill"
-              alt="Post image"
-              objectFit="contain"
-            />
+            {[".jpg", ".jpeg", ".png"].some((Extension) =>
+              SinglePost?.PostPicturePath.endsWith(Extension)
+            ) ? (
+              <Image
+                src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                layout="fill"
+                alt="Post image"
+                objectFit="contain"
+              />
+            ) : [".mp4", ".mkv", ".webm",".mpeg4"].some((Extension) =>
+                SinglePost?.PostPicturePath.endsWith(Extension)
+              ) ? (
+              <video width="100%" height="100%" controls>
+                <source
+                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                />
+              </video>
+            ) : null}
           </section>
         ) : null}
         <section>
@@ -195,7 +209,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
           style={{
             backgroundColor: Theme.Palette.Background.Alt,
             color: Theme.Palette.Neutral.Dark,
-            borderColor:Theme.Palette.Primary.Light
+            borderColor: Theme.Palette.Primary.Light,
           }}
         >
           <div
@@ -212,8 +226,16 @@ const DisplayPosts = ({ SinglePost }: any) => {
             />
             <SendIcon onClick={AddComment} className="hover:cursor-pointer" />
           </div>
-          {Comments.map((EachComm: string,ind:number) => {
-            return <p key={ind}><RadioButtonCheckedIcon fontSize="small" style={{color:Theme.Palette.Primary.Light}} />  {EachComm}</p>;
+          {Comments.map((EachComm: string, ind: number) => {
+            return (
+              <p key={ind}>
+                <RadioButtonCheckedIcon
+                  fontSize="small"
+                  style={{ color: Theme.Palette.Primary.Light }}
+                />{" "}
+                {EachComm}
+              </p>
+            );
           })}
         </section>
       ) : null}

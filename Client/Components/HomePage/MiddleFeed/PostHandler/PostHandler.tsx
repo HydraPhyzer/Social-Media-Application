@@ -25,6 +25,7 @@ import FormData from "form-data";
 import Axios from "../../../Axios/Axios";
 import { config } from "process";
 import { SetPost } from "../../../../Redux/AuthReducer";
+import CustomizedSnackbars from "../../../Toast/Toast";
 
 type PostType = {
   Description: string;
@@ -63,6 +64,8 @@ const PostHandler = () => {
   });
   const [File, setFile] = React.useState<File[]>([]);
   const [Progress, SetProgress] = React.useState<number>(0);
+  const [SelectedFile, setSelectedFile] = React.useState<any>(null);
+  const [VideoUrl, setVideoUrl] = React.useState("");
   const [ShowToast, setShowToast] = React.useState<PropsType>({
     Message: "",
     Visible: false,
@@ -72,6 +75,9 @@ const PostHandler = () => {
   const SetValues = (Attr: string, Value: string) => {
     setPost({ ...Post, [Attr]: Value });
   };
+  let UpdateState=()=>{
+    setShowToast({...ShowToast,Visible:false});
+  }
 
   const Mode = useSelector((State: any) => State?.Mode);
   const User = useSelector((State: any) => State?.User);
@@ -99,8 +105,40 @@ const PostHandler = () => {
       };
       Reader.readAsDataURL(Files[0]);
     } else {
-      alert("Irralvant File Type or File Size too Large");
+      setShowToast({
+        ...ShowToast,
+        Message: "Irralvant File Type or File Size too Large",
+        Visible: true,
+      });
+      
     }
+  };
+  let onVideoDrop = (Files: any) => {
+    const AcceptedFileTypes = ["video/mp4", "video/mpeg"];
+    const FilteredFiles = Files.filter((file: File) =>
+      AcceptedFileTypes.includes(file.type)
+    );
+    if (FilteredFiles?.length > 0) {
+      setSelectedFile(Files[0]);
+
+      const Reader = new FileReader();
+      Reader.onload = () => {
+        if (typeof Reader?.result === "string") {
+          setPost({ ...Post, PostPicturePath: Reader.result });
+        } else {
+          setPost({ ...Post, PostPicturePath: "" });
+        }
+      };
+      Reader.readAsDataURL(Files[0]);
+    } else {
+      setShowToast({
+        ...ShowToast,
+        Message: "Irralvant File Type or File Size too Large",
+        Visible: true,
+      });
+    }
+
+    setVideoUrl(URL.createObjectURL(Files[0]));
   };
 
   const SubmitPost = async () => {
@@ -130,6 +168,13 @@ const PostHandler = () => {
           File[0] ? (File[0] as FileWithPath).path : ""
         );
       }
+      if (SelectedFile) {
+        FrmData.append("Image", SelectedFile);
+        FrmData.append(
+          "PicturePath",
+          SelectedFile?.path
+        );
+      }
 
       try {
         await Axios.post("/createpost", FrmData, {
@@ -141,6 +186,8 @@ const PostHandler = () => {
           setPost({ Description: "", PostPicturePath: "" });
           SetProgress(0);
           setFile([]);
+          setVideoUrl("")
+          setSelectedFile(null);
           Dispatch(SetPost({ Post: Res.data }));
         });
       } catch (Error: any) {
@@ -200,6 +247,24 @@ const PostHandler = () => {
             className="text-red-500"
           />
         </div>
+      ) : VideoUrl ? (
+        <div className="flex items-center justify-between">
+          <video src={VideoUrl} controls style={{
+              display: "block",
+              width: "90%",
+              height: "200px",
+              objectFit: "contain",
+              borderRadius: "5px",
+            }}  />
+          <DeleteIcon
+            onClick={() => {
+              setSelectedFile(null);
+              setVideoUrl("");
+            }}
+            fontSize="small"
+            className="text-red-500"
+          />
+        </div>
       ) : null}
       <div>
         {Progress > 0 ? (
@@ -233,9 +298,23 @@ const PostHandler = () => {
         </section>
         <section className="flex text-xs items-center">
           <IconButton>
-            <VideoCameraBackIcon
-              style={{ color: Theme.Palette.Neutral.MediumMain }}
-            />
+            <Dropzone
+              onDrop={onVideoDrop}
+              multiple={false}
+              minSize={0}
+              maxSize={10485760}
+            >
+              {({ getRootProps, getInputProps }) => (
+                <section className="hover:cursor-pointer">
+                  <div {...getRootProps()}>
+                    <input {...getInputProps()} />
+                    <VideoCameraBackIcon
+                      style={{ color: Theme.Palette.Neutral.MediumMain }}
+                    />
+                  </div>
+                </section>
+              )}
+            </Dropzone>
           </IconButton>
           <p>Video</p>
         </section>
@@ -264,6 +343,7 @@ const PostHandler = () => {
             Post
           </button>
         </section>
+        <div>{ShowToast.Visible ? <CustomizedSnackbars Props={ShowToast} Func={()=>{UpdateState()}} /> : ""}</div>
       </div>
     </div>
   );
