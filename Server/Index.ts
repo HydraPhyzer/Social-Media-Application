@@ -23,6 +23,7 @@ const Multer = require("multer");
 let App = Express();
 let JWT = require("jsonwebtoken");
 const PORT = process.env.PORT || 7001;
+const FS = require("fs");
 
 // const __Filename=fileURLToPath(require('import-meta').url)
 // const __dirname=Path.dirname(__Filename)
@@ -35,9 +36,11 @@ App.use(Cors());
 App.use(BodyParser.json({ limit: "30mb" }));
 App.use(BodyParser.urlencoded({ limit: "30mb", extended: true }));
 App.use(Morgan("common"));
-App.use(Helmet({
-  crossOriginResourcePolicy: false,
-}));
+App.use(
+  Helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 App.use("/Assets", Express.static(Path.join(__dirname, "Public/Assets")));
 // Code Part
 
@@ -66,7 +69,16 @@ const UploadVideo = Multer({
   },
 });
 
-App.post("/uploadvideo", UploadVideo.single("Video"), (Req: any, Res: any) => {
+const UploadAudio = Multer({ storage: Storage });
+
+// App.post("/uploadvideo", UploadVideo.single("Video"), (Req: any, Res: any) => {
+//   try {
+//     Res.send(Req.file);
+//   } catch (Err: any) {
+//     Res.status(400).send({ error: Err.message });
+//   }
+// });
+App.post("/uploadaudio", UploadAudio.single("Audio"), (Req: any, Res: any) => {
   try {
     Res.send(Req.file);
   } catch (Err: any) {
@@ -134,35 +146,61 @@ App.post("/auth/login", async (Req, Res) => {
 });
 
 //Creating Post
-App.post("/createpost", Upload.single("Image") || UploadVideo.single("Video"), async (Req, Res) => {
-  try {
-    const { UserId, Description } = Req.body;
-    const FetchUser = await User.findOne({ _id: UserId });
-    if (FetchUser) {
-      const { FirstName, LastName, PicturePath: UserPicturePath } = FetchUser;
-      const PostPicturePath = Req.body?.PicturePath
-        ? ImageCode + Path.extname(Req.body?.PicturePath)
-        : "";
+App.post(
+  "/createpost",
+  Upload.single("Image") ||
+    UploadVideo.single("Video") ||
+    UploadAudio.single("Audio"),
+  async (Req, Res) => {
+    try {
+      const { UserId, Description } = Req.body;
+      const FetchUser = await User.findOne({ _id: UserId });
+      if (FetchUser) {
+        const { FirstName, LastName, PicturePath: UserPicturePath } = FetchUser;
+        const PostPicturePath = Req.body?.PicturePath
+          ? ImageCode + Path.extname(Req.body?.PicturePath)
+          : "";
 
-      const NewPost = await new Post({
-        FirstName,
-        LastName,
-        Description,
-        UserPicturePath,
-        UserId,
-        PostPicturePath,
-      })
-        .save()
-        .then(async () => {
-          let AllPost = await Post.find().sort({ createdAt: -1 });
-          Res.status(201).json(AllPost);
-        });
+        const NewPost = await new Post({
+          FirstName,
+          LastName,
+          Description,
+          UserPicturePath,
+          UserId,
+          PostPicturePath,
+        })
+          .save()
+          .then(async () => {
+            let AllPost = await Post.find().sort({ createdAt: -1 });
+            Res.status(201).json(AllPost);
+          });
+      }
+    } catch (Error) {
+      Res.status(400).json({ Error: "Unable to Upload Post" });
+    }
+  }
+);
+App.delete("/deletepost/:id", async (Req, Res) => {
+  try {
+    const Get: any = await Post.findOne({ _id: Req.params?.id });
+
+    if(Get?.PostPicturePath){
+      const assetsFolderPath = path.join(__dirname, "Public", "Assets");
+      const filePath = path.join(assetsFolderPath, `${Get?.PostPicturePath}`);
+  
+      FS.unlinkSync(filePath);
+    }
+
+    const Del = await Post.deleteOne({ _id: Req.params?.id });
+    console.log(Del);
+    if (Del.deletedCount === 1) {
+      const AllPost = await Post.find().sort({ createdAt: -1 });
+      Res.status(204).json(AllPost);
     }
   } catch (Error) {
-    Res.status(400).json({ Error: "Unable to Upload Post" });
+    Res.status(400).json({ Error: "Unable to Delete Post" });
   }
 });
-
 App.get("/getallposts", async (Req, Res) => {
   try {
     let AllPost = await Post.find().sort({ createdAt: -1 });

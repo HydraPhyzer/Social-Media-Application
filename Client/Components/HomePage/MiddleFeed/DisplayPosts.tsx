@@ -8,7 +8,6 @@ import CommentIcon from "@mui/icons-material/Comment";
 import ShareIcon from "@mui/icons-material/Share";
 import { CustomTheme } from "../../Themes/CustomTheme";
 import { ThemeSettings } from "../../Themes/Themes";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import Axios from "../../Axios/Axios";
@@ -16,6 +15,7 @@ import FormData from "form-data";
 import { SetUser, PatchEachPost } from "../../../Redux/AuthReducer";
 import SendIcon from "@mui/icons-material/Send";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
+import Decision from "../../Decision/Decision";
 
 const DisplayPosts = ({ SinglePost }: any) => {
   const User = useSelector((State: any) => {
@@ -27,6 +27,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
   const CommentCount = SinglePost?.Comments?.length;
   const Comments = SinglePost?.Comments;
   const [ShowComments, setShowComments] = useState(false);
+  const [RemovePost, setRemovePost] = useState(false);
 
   const [CommentText, setCommentText] = useState("");
 
@@ -123,9 +124,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
           </div>
           <div className="Right">
             {SinglePost?.UserId == User?._id ? (
-              <IconButton>
-                <MoreHorizIcon style={{ color: Theme.Palette.Neutral.Main }} />
-              </IconButton>
+              <Decision PostId={SinglePost?._id} />
             ) : User?.Friends.includes(SinglePost?.UserId) ? (
               <IconButton onClick={RemoveFriend}>
                 <PersonRemoveIcon
@@ -149,17 +148,19 @@ const DisplayPosts = ({ SinglePost }: any) => {
         ) : null}
 
         {SinglePost?.PostPicturePath ? (
-          <section className="h-[300px] w-[100%] relative my-2">
+          <section className="relative my-2">
             {[".jpg", ".jpeg", ".png"].some((Extension) =>
               SinglePost?.PostPicturePath.endsWith(Extension)
             ) ? (
-              <Image
-                src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
-                layout="fill"
-                alt="Post image"
-                objectFit="contain"
-              />
-            ) : [".mp4", ".mkv", ".webm",".mpeg4"].some((Extension) =>
+              <div className="h-[300px] w-[100%]">
+                <Image
+                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                  layout="fill"
+                  alt="Post image"
+                  objectFit="contain"
+                />
+              </div>
+            ) : [".mp4", ".mkv", ".webm", ".mpeg4"].some((Extension) =>
                 SinglePost?.PostPicturePath.endsWith(Extension)
               ) ? (
               <video width="100%" height="100%" controls>
@@ -167,6 +168,14 @@ const DisplayPosts = ({ SinglePost }: any) => {
                   src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
                 />
               </video>
+            ) : [".m4a", ".mp3", "wav", "alac", "flac", "ogg"].some(
+                (Extension) => SinglePost?.PostPicturePath.endsWith(Extension)
+              ) ? (
+              <audio controls className="w-[100%] py-2">
+                <source
+                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                />
+              </audio>
             ) : null}
           </section>
         ) : null}
