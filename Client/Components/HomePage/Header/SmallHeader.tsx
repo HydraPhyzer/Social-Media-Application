@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import ChatIcon from "@mui/icons-material/Chat";
-import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 import Dialog from "./Dialog";
 import { createTheme, Divider, IconButton, ThemeOptions } from "@mui/material";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
@@ -11,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
 import MenuIcon from "@mui/icons-material/Menu";
+import AppInfo from "../../AppInfo/AppInfo";
 
 const SmallHeader = () => {
   const [Show, setShow] = React.useState(false);
@@ -70,7 +70,6 @@ const SmallHeader = () => {
               />
             </IconButton>
           </div>
-
           <div className="flex justify-between items-center gap-x-3 my-3">
             <IconButton
               onClick={SetMod}
@@ -80,9 +79,6 @@ const SmallHeader = () => {
             </IconButton>
             <IconButton style={{ color: Theme.Palette.Primary.Main }}>
               <CircleNotificationsIcon />
-            </IconButton>
-            <IconButton style={{ color: Theme.Palette.Primary.Main }}>
-              <ContactSupportIcon />
             </IconButton>
             <IconButton style={{ color: Theme.Palette.Primary.Main }}>
               <ChatIcon />
