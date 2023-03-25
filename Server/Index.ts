@@ -15,6 +15,7 @@ import bcrypt from "bcrypt";
 import console from "console";
 import User from "./Schema/User";
 import Post from "./Schema/Post";
+import Chat from "./Schema/Chat";
 import { VerifyToken } from "./Token/JWT";
 // Require Statements
 let Cors = require("cors");
@@ -184,10 +185,10 @@ App.delete("/deletepost/:id", async (Req, Res) => {
   try {
     const Get: any = await Post.findOne({ _id: Req.params?.id });
 
-    if(Get?.PostPicturePath){
+    if (Get?.PostPicturePath) {
       const assetsFolderPath = path.join(__dirname, "Public", "Assets");
       const filePath = path.join(assetsFolderPath, `${Get?.PostPicturePath}`);
-  
+
       FS.unlinkSync(filePath);
     }
 
@@ -301,6 +302,128 @@ App.post("/addcomment/:id", Upload.single("Image"), async (Req, Res) => {
   }
 });
 
+// App.post("/addmessage", async (Req, Res) => {
+//   let Finder = await Chat.findOne({
+//     SenderID: Req.body.SenderID,
+//     ReceiverID: Req.body.ReceiverID,
+//   });
+//   console.log(Finder);
+//   if (!Finder) {
+//     await new Chat({
+//       SenderID: Req.body.SenderID,
+//       ReceiverID: Req.body.ReceiverID,
+//       Messages: [{ MessageText: Req.body.Text, Owner: Req.body.Owner }],
+//     })
+//       .save()
+//       .then(() => {
+//         Res.send("Ok");
+//       });
+//   } else {
+//     Finder?.Messages.push({
+//       MessageText: Req.body.Text,
+//       Owner: Req.body.Owner,
+//       timestamp: new Date(),
+//     });
+//     await Finder.save().then(() => {
+//       Res.send("Ok");
+//     });
+//   }
+// });
+App.get("/getchats/:SenderID/:ReceiverID", async (Req, Res) => {
+  let { SenderID, ReceiverID }: { SenderID: string; ReceiverID: string } =
+    Req.params;
+  let Result = await Chat.findOne({
+    SenderID,
+    ReceiverID,
+  }).sort({ "Messages.timestamp": 1 });
+  let ResultTwo = await Chat.findOne({
+    SenderID: ReceiverID,
+    ReceiverID: SenderID,
+  }).sort({ "Messages.timestamp": 1 });
+  if (!Result && !ResultTwo) {
+    Result = await new Chat({
+      SenderID,
+      ReceiverID,
+      Messages: [],
+    }).save();
+  }
+  Res.status(200).json(Result || ResultTwo);
+});
+
+App.post("/sendmessage", Upload.single("Image"), async (Req, Res) => {
+  try {
+    let {
+      SenderID,
+      ReceiverID,
+      Message,
+    }: { SenderID: string; ReceiverID: string; Message: string } = Req.body;
+    console.log(SenderID, ReceiverID, Message);
+
+    let Result = await Chat.findOne({
+      SenderID,
+      ReceiverID,
+    }).sort({ "Messages.timestamp": 1 });
+    let ResultTwo = await Chat.findOne({
+      SenderID: ReceiverID,
+      ReceiverID: SenderID,
+    }).sort({ "Messages.timestamp": 1 });
+    if (Result) {
+      const NewMessage = {
+        MessageText: Message,
+        Owner: SenderID,
+        timestamp: new Date(),
+      };
+      Chat.findOneAndUpdate(
+        { _id: Result._id },
+        { $push: { Messages: NewMessage } },
+        { new: true },
+        async (err, chat) => {
+          if (err) {
+            Res.status(400).json({ Error: "Cannot Send Message" });
+            return;
+          } else {
+            Res.status(200).json(chat);
+          }
+        }
+      );
+    }
+    if (ResultTwo) {
+      const NewMessage = {
+        MessageText: Message,
+        Owner: SenderID,
+        timestamp: new Date(),
+      };
+      Chat.findOneAndUpdate(
+        { _id: ResultTwo._id },
+        { $push: { Messages: NewMessage } },
+        { new: true },
+        async (err, chat) => {
+          if (err) {
+            Res.status(400).json({ Error: "Cannot Send Message" });
+            return;
+          } else {
+            Res.status(200).json(chat);
+          }
+        }
+      );
+    }
+  } catch (Error: any) {
+    Res.status(400).json({ Error: "Unable to Send Message" });
+  }
+});
+
+App.get("/getuser/:id", async (Req, Res) => {
+  try {
+    let Result = await User.findById({
+      _id: Req.params.id,
+    });
+    if (Result) {
+      Res.status(200).json(Result);
+    }
+  } catch (Err) {
+    Res.status(400).json({ Error: "Unable to Fetch Messages" });
+  }
+});
 // App.listen(4500);
 
 Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")

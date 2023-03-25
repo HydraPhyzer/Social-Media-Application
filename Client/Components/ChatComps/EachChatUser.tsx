@@ -5,19 +5,41 @@ import { createTheme, ThemeOptions, useMediaQuery } from "@mui/material";
 import { CustomTheme } from "../../Components/Themes/CustomTheme";
 import { useSelector } from "react-redux";
 import { ThemeSettings } from "../../Components/Themes/Themes";
+import Axios from "../../Components/Axios/Axios";
+import {SetChats} from "../../Redux/AuthReducer";
+import { useDispatch } from "react-redux";
 
 const EachChatUser = ({ Friends }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
+  const User = useSelector((State: any) => State.User);
   let Theme = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
     ) as CustomTheme;
   }, [Mode]);
+  let Dispatch = useDispatch();
+
+  let ShowChat = async (UserId: string, FriendId: string) => {
+    await Axios.get(`/getchats/${UserId}/${FriendId}`).then((Res) => {
+      if(Res.data){
+        if(Res.data?.SenderID!==UserId){
+          let Depend={...Res.data,SenderID:UserId,ReceiverID:FriendId}
+          Dispatch(SetChats({Chats:Depend}));
+        }
+        else{
+          Dispatch(SetChats({Chats:Res.data}));
+        }
+      }
+    });
+  };
   return (
     <div
       className="p-2 flex gap-x-5 bg-red-500 rounded-md items-center mb-1 cursor-pointer w-full"
       style={{
         backgroundColor: Theme.Palette.Background.Default,
+      }}
+      onClick={() => {
+        ShowChat(User?._id, Friends?._id);
       }}
     >
       <div>

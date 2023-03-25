@@ -5,6 +5,7 @@ const InitialState = {
   User: null,
   Token: null,
   Posts: [],
+  Chats: {},
 };
 
 export const AuthSlice = createSlice({
@@ -22,6 +23,7 @@ export const AuthSlice = createSlice({
       State.User = null;
       State.Token = null;
       State.Posts = [];
+      State.Chats = [];
     },
     SetPost: (State, Action) => {
       State.Posts = Action.payload.Post;
@@ -30,17 +32,27 @@ export const AuthSlice = createSlice({
       State.User = Action.payload.User;
     },
     PatchEachPost: (State, Action) => {
-      const UpdatedPost:any = State.Posts.map((Each:any) => {
+      const UpdatedPost: any = State.Posts.map((Each: any) => {
         if (Each?._id === Action.payload.Post?._id) {
           return Action.payload.Post;
         }
-        return Each
+        return Each;
       });
-      State.Posts=UpdatedPost
+      State.Posts = UpdatedPost;
+    },
+    SetChats: (State, Action) => {
+      State.Chats = Action.payload.Chats;
     },
   },
 });
 
-export const { SetMode, SetLogIn, SetLogOut, SetPost, SetUser,PatchEachPost } =
-  AuthSlice.actions;
+export const {
+  SetMode,
+  SetLogIn,
+  SetLogOut,
+  SetPost,
+  SetUser,
+  PatchEachPost,
+  SetChats,
+} = AuthSlice.actions;
 export default AuthSlice.reducer;
