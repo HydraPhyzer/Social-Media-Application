@@ -12,6 +12,7 @@ import Axios from "../../Axios/Axios";
 const FriendsList = ({ Friends }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
+  const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
   let Theme = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
@@ -37,13 +38,19 @@ const FriendsList = ({ Friends }: any) => {
   };
 
   return (
-    <div
-      className=" p-3 rounded-md text-sm"
-    >
+    <div className=" p-3 rounded-md text-sm">
       <div>
         <div className="flex justify-between items-center">
           <section className="flex items-center gap-x-2">
             <Avatar
+              Status={
+                OnlineUsers?.some(
+                  (Each: { UserId: string; SocketId: string }) =>
+                    Each?.UserId == Friends?._id
+                )
+                  ? true
+                  : false
+              }
               Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}
             />
             <p>{Friends?.FirstName + " " + Friends?.LastName}</p>

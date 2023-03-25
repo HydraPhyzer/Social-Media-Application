@@ -6,9 +6,10 @@ const InitialState = {
   Token: null,
   Posts: [],
   Chats: {},
+  OnlineUsers: [],
 };
 
-export const AuthSlice = createSlice({
+export const AuthSlice: any = createSlice({
   name: "Auth",
   initialState: InitialState,
   reducers: {
@@ -23,7 +24,8 @@ export const AuthSlice = createSlice({
       State.User = null;
       State.Token = null;
       State.Posts = [];
-      State.Chats = [];
+      State.Chats = {};
+      State.OnlineUsers = [];
     },
     SetPost: (State, Action) => {
       State.Posts = Action.payload.Post;
@@ -43,6 +45,9 @@ export const AuthSlice = createSlice({
     SetChats: (State, Action) => {
       State.Chats = Action.payload.Chats;
     },
+    SetOnlineUsers: (State, Action) => {
+      State.OnlineUsers = Action.payload.OnlineUser;
+    },
   },
 });
 
@@ -54,5 +59,6 @@ export const {
   SetUser,
   PatchEachPost,
   SetChats,
+  SetOnlineUsers,
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

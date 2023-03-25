@@ -2,7 +2,7 @@ import { Box, createTheme, ThemeOptions, useMediaQuery } from "@mui/material";
 import type { NextPage } from "next";
 import Head from "next/head";
 import React, { useState, useEffect, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import LargeHeader from "../Components/HomePage/Header/LargeHeader";
 import SmallHeader from "../Components/HomePage/Header/SmallHeader";
 import LeftFeed from "../Components/HomePage/LeftFeed/LeftFeed";
@@ -12,6 +12,8 @@ import { CustomTheme } from "../Components/Themes/CustomTheme";
 import { ThemeSettings } from "../Components/Themes/Themes";
 import Axios from "../Components/Axios/Axios";
 import { useRouter } from "next/router";
+const { io } = require("socket.io-client");
+import { SetOnlineUsers } from "../Redux/AuthReducer";
 
 const Home = () => {
   let [Move, setMove] = useState(false);
@@ -26,6 +28,7 @@ const Home = () => {
 
   let Router = useRouter();
   let Token = useSelector((State: any) => State?.Token);
+  let User = useSelector((State: any) => State?.User);
 
   useEffect(() => {
     let VerifyUser = async () => {
@@ -45,6 +48,21 @@ const Home = () => {
         });
     };
     VerifyUser();
+  }, []);
+  let Dispatch=useDispatch()
+
+
+  useEffect(() => {
+    const Socket = io("http://localhost:8800");
+
+    Socket.on("connect",()=>{
+      Socket.emit("New-OnlineUser",User?._id)
+      Socket.on("Get-OnlineUsers",(Val:any)=>{
+        console.log(Val)
+        Dispatch(SetOnlineUsers({OnlineUser:Val}))
+      })
+    });
+    
   }, []);
 
   return (

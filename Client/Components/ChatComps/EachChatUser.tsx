@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 const EachChatUser = ({ Friends }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
+  const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
   let Theme = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
@@ -43,7 +44,7 @@ const EachChatUser = ({ Friends }: any) => {
       }}
     >
       <div>
-        <Avatar Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`} />
+        <Avatar Status={OnlineUsers?.some((Each:{UserId:string,SocketId:string})=>Each?.UserId==Friends?._id)?true:false} Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`} />
       </div>
       <div>
         <p
