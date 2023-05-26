@@ -10,6 +10,7 @@ import path from "path";
 import { appendFile } from "fs";
 import process from "process";
 import { v4 as uuidv4 } from "uuid";
+import { Server } from "socket.io";
 
 import bcrypt from "bcrypt";
 import console from "console";
@@ -240,12 +241,6 @@ App.patch("/removefriend", Upload.single("Image"), async (Req, Res) => {
     Res.status(400).json({ Error: "Unable to Add Friend" });
   }
 });
-
-// type Inf ={
-//   FirstName:string,
-//   LastName:string,
-//   PicturePath:string,
-// }
 App.get("/getfriends/:id", async (Req, Res) => {
   try {
     let CustomUser = await User.findOne({ _id: Req.params?.id });
@@ -424,6 +419,23 @@ App.get("/getuser/:id", async (Req, Res) => {
     Res.status(400).json({ Error: "Unable to Fetch Messages" });
   }
 });
+
+App.get("/searchuser/:Query", async (Req, Res) => {
+  let {Query}:{Query:string}=Req.params;
+  try{
+    const SearchResult=await User.find({
+      $or:[
+        {FirstName:{$regex:Query,$options:"i"}},
+        {LastName:{$regex:Query,$options:"i"}},
+      ]
+    })
+    Res.status(200).json(SearchResult);
+  }
+  catch(Err){
+    Res.status(400).json({ Error: "User Not Found" });
+  }
+})
+
 // App.listen(4500);
 
 Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")
@@ -435,3 +447,26 @@ Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")
   .catch((Error: Error) => {
     console.log(`${Error.name} Did Not Conncet`);
   });
+
+  const io=require("socket.io")(8800,{
+    cors:{
+      origin:"http://localhost:3000"
+    }
+  })
+
+  let Arr:{UserId:string,SocketId:string}[]=[];
+
+  io.on("connection",(Socket:any)=>{
+    Socket.on("New-OnlineUser",(Val:string)=>{
+      // if(!Arr.includes(Val)){
+      //   Arr.push(Val);
+      // }
+      if(!Arr.some((User)=>User?.UserId===Val)){
+        Arr.push({UserId:Val,SocketId:Socket?.id})
+      }
+      Socket.emit("Get-OnlineUsers",[...Arr])
+    })
+    Socket.on("disconnect",()=>{
+      Arr=Arr.filter((User)=>User?.SocketId!==Socket?.id)
+    })
+  })

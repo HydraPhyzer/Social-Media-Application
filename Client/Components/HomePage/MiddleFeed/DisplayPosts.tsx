@@ -240,7 +240,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
               <p key={ind}>
                 <RadioButtonCheckedIcon
                   fontSize="small"
-                  style={{ color: Theme.Palette.Primary.Light }}
+                  style={{ color: Theme.Palette.Primary.Main }}
                 />{" "}
                 {EachComm}
               </p>
