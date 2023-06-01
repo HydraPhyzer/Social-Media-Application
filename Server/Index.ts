@@ -208,7 +208,16 @@ App.get("/getallposts", async (Req, Res) => {
     let AllPost = await Post.find().sort({ createdAt: -1 });
     Res.status(201).json(AllPost);
   } catch (Error) {
-    Res.status(400).json({ Error: "Unable to Upload Post" });
+    Res.status(400).json({ Error: "Unable to Get Post" });
+  }
+});
+App.get("/getallposts/:userid", async (Req, Res) => {
+  try {
+    const UserId = Req.params?.userid;
+    let AllPost = await Post.find({UserId:UserId}).sort({ createdAt: -1 });
+    Res.status(201).json(AllPost);
+  } catch (Error) {
+    Res.status(400).json({ Error: "Unable to Get Post" });
   }
 });
 
@@ -421,20 +430,30 @@ App.get("/getuser/:id", async (Req, Res) => {
 });
 
 App.get("/searchuser/:Query", async (Req, Res) => {
-  let {Query}:{Query:string}=Req.params;
-  try{
-    const SearchResult=await User.find({
-      $or:[
-        {FirstName:{$regex:Query,$options:"i"}},
-        {LastName:{$regex:Query,$options:"i"}},
-      ]
-    })
+  let { Query }: { Query: string } = Req.params;
+  try {
+    const SearchResult = await User.find({
+      $or: [
+        { FirstName: { $regex: Query, $options: "i" } },
+        { LastName: { $regex: Query, $options: "i" } },
+      ],
+    });
     Res.status(200).json(SearchResult);
-  }
-  catch(Err){
+  } catch (Err) {
     Res.status(400).json({ Error: "User Not Found" });
   }
-})
+});
+App.get("/getsearchuser/:UserId", async (Req, Res) => {
+  try{
+    const ID=Req.params.UserId;
+    const Result=await User.find({_id:ID})
+    const AllPosts=await Post.find({UserId:ID})
+    Res.status(200).json({UserInfo:Result[0],PostInfo:AllPosts})
+  }
+  catch(Err){
+    Res.status(400).json({Error:"User Not Found"})
+  }
+});
 
 // App.listen(4500);
 
@@ -448,25 +467,25 @@ Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")
     console.log(`${Error.name} Did Not Conncet`);
   });
 
-  const io=require("socket.io")(8800,{
-    cors:{
-      origin:"http://localhost:3000"
+const io = require("socket.io")(8800, {
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
+
+let Arr: { UserId: string; SocketId: string }[] = [];
+
+io.on("connection", (Socket: any) => {
+  Socket.on("New-OnlineUser", (Val: string) => {
+    // if(!Arr.includes(Val)){
+    //   Arr.push(Val);
+    // }
+    if (!Arr.some((User) => User?.UserId === Val)) {
+      Arr.push({ UserId: Val, SocketId: Socket?.id });
     }
-  })
-
-  let Arr:{UserId:string,SocketId:string}[]=[];
-
-  io.on("connection",(Socket:any)=>{
-    Socket.on("New-OnlineUser",(Val:string)=>{
-      // if(!Arr.includes(Val)){
-      //   Arr.push(Val);
-      // }
-      if(!Arr.some((User)=>User?.UserId===Val)){
-        Arr.push({UserId:Val,SocketId:Socket?.id})
-      }
-      Socket.emit("Get-OnlineUsers",[...Arr])
-    })
-    Socket.on("disconnect",()=>{
-      Arr=Arr.filter((User)=>User?.SocketId!==Socket?.id)
-    })
-  })
+    Socket.emit("Get-OnlineUsers", [...Arr]);
+  });
+  Socket.on("disconnect", () => {
+    Arr = Arr.filter((User) => User?.SocketId !== Socket?.id);
+  });
+});

@@ -49,20 +49,18 @@ const Home = () => {
     };
     VerifyUser();
   }, []);
-  let Dispatch=useDispatch()
-
+  let Dispatch = useDispatch();
 
   useEffect(() => {
     const Socket = io("http://localhost:8800");
 
-    Socket.on("connect",()=>{
-      Socket.emit("New-OnlineUser",User?._id)
-      Socket.on("Get-OnlineUsers",(Val:any)=>{
-        console.log(Val)
-        Dispatch(SetOnlineUsers({OnlineUser:Val}))
-      })
+    Socket.on("connect", () => {
+      Socket.emit("New-OnlineUser", User?._id);
+      Socket.on("Get-OnlineUsers", (Val: any) => {
+        console.log(Val);
+        Dispatch(SetOnlineUsers({ OnlineUser: Val }));
+      });
     });
-    
   }, []);
 
   return (

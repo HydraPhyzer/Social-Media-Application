@@ -4,7 +4,7 @@ const nextConfig = {
   swcMinify: true,
 
   images: {
-    domains: ['localhost','cdn.shopify.com'],
+    domains: ['localhost','cdn.shopify.com',"fakestoreapi.com"],
   },
 }
 module.exports = nextConfig

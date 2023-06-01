@@ -12,10 +12,9 @@ import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
 import AppInfo from "../../AppInfo/AppInfo";
 import { useRouter } from "next/router";
-import { relative } from "path";
 import Axios from "../../Axios/Axios";
 
-const LargeHeader = () => {
+const LargeHeader :any= () => {
   let [SearchedUser, setSearchUser] = React.useState([]);
   const User = useSelector((State: any) => {
     return State?.User;
@@ -89,7 +88,7 @@ const LargeHeader = () => {
             >
               {SearchedUser.map((User: any) => {
                 return (
-                  <div onClick={()=>{alert(User._id)}} className="flex gap-2 items-center hover:cursor-pointer">
+                  <div onClick={()=>{Router.push(`/search/${User._id}`);setSearchUser([])}} className="flex gap-2 items-center hover:cursor-pointer">
                     <Avatar
                       Path={`http://localhost:7001/Assets/${User?.PicturePath}`}
                     />
@@ -115,10 +114,10 @@ const LargeHeader = () => {
           onClick={SetMod}
           style={{ color: Theme.Palette.Primary.Main }}
         >
-          <LightModeIcon />
+          <LightModeIcon className="hover:animate-spin"/>
         </IconButton>
         <IconButton style={{ color: Theme.Palette.Primary.Main }}>
-          <CircleNotificationsIcon />
+          <CircleNotificationsIcon className="Bell"/>
         </IconButton>
         <AppInfo />
 
@@ -128,7 +127,7 @@ const LargeHeader = () => {
           }}
           style={{ color: Theme.Palette.Primary.Main }}
         >
-          <ChatIcon />
+          <ChatIcon className="hover:animate-pulse" />
         </IconButton>
         <Dialog />
       </div>

@@ -13,3 +13,36 @@
 ::-webkit-scrollbar {
   width: 0px;
 }
+
+.Bell:hover {
+  position: relative;
+  animation: bell-swing 2s infinite ease-in-out;
+}
+
+.Bell:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.Bell:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes bell-swing {
+  0% {
+    transform: rotate(-20deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(-20deg);
+  }
+}
+

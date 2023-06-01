@@ -61,7 +61,7 @@ const EachChatUser = ({ Friends }: any) => {
             color: Theme.Palette.Neutral.MediumMain,
           }}
         >
-          Last Seen at 19:45:53 PM
+          {OnlineUsers?.some((Each:{UserId:string,SocketId:string})=>Each?.UserId==Friends?._id)?'Online':'Offline - Last Seen at 19:45:53 PM'}
         </p>
       </div>
     </div>

@@ -16,11 +16,13 @@ import { SetUser, PatchEachPost } from "../../../Redux/AuthReducer";
 import SendIcon from "@mui/icons-material/Send";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import Decision from "../../Decision/Decision";
+import { useRouter } from "next/router";
 
 const DisplayPosts = ({ SinglePost }: any) => {
   const User = useSelector((State: any) => {
     return State?.User;
   });
+  let Router=useRouter();
 
   const IsLiked = Boolean(SinglePost?.Likes[User?._id]);
   const LikeCount = Object.keys(SinglePost?.Likes).length;
@@ -92,19 +94,19 @@ const DisplayPosts = ({ SinglePost }: any) => {
   return (
     <div>
       <div
-        className="mt-5 p-3 rounded-md"
+        className="mb-3 p-3 rounded-md"
         style={{
           backgroundColor: Theme.Palette.Background.Alt,
           color: Theme.Palette.Neutral.Dark,
         }}
       >
         <section className="flex justify-between items-center">
-          <div className="Left flex gap-x-2 items-center">
+          <div className="Left flex gap-x-2 items-center" onClick={()=>{Router.push(`/search/${SinglePost?.UserId}`)}}>
             <Avatar
               Path={`http://localhost:7001/Assets/${SinglePost?.UserPicturePath}`}
             />
             <div>
-              <p className="text-sm">
+              <p className="text-sm hover:underline hover:cursor-pointer">
                 {SinglePost?.FirstName + " " + SinglePost?.LastName}
               </p>
               <p
@@ -181,7 +183,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
         ) : null}
         <section>
           <div
-            className="flex justify-between items-center border-t-[1px] border-dotted"
+            className="flex justify-between items-center"
             style={{ borderColor: Theme.Palette.Neutral.Dark }}
           >
             <div>

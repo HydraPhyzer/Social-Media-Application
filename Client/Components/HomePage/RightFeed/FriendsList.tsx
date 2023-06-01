@@ -8,10 +8,12 @@ import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import { SetUser } from "../../../Redux/AuthReducer";
 import Axios from "../../Axios/Axios";
+import { useRouter } from "next/router";
 
 const FriendsList = ({ Friends }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
+  let Router=useRouter();
   const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
   let Theme = useMemo(() => {
     return createTheme(
@@ -40,7 +42,7 @@ const FriendsList = ({ Friends }: any) => {
   return (
     <div className=" p-3 rounded-md text-sm">
       <div>
-        <div className="flex justify-between items-center">
+        <div onClick={()=>{Router.push(`/search/${Friends?._id}`)}} className="flex justify-between items-center cursor-pointer">
           <section className="flex items-center gap-x-2">
             <Avatar
               Status={
@@ -53,7 +55,7 @@ const FriendsList = ({ Friends }: any) => {
               }
               Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}
             />
-            <p>{Friends?.FirstName + " " + Friends?.LastName}</p>
+            <p className="hover:underline hover:cursor-pointer">{Friends?.FirstName + " " + Friends?.LastName}</p>
           </section>
 
           {User?.Friends?.includes(Friends?._id) ? (

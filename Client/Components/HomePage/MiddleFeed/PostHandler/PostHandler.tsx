@@ -242,7 +242,7 @@ const PostHandler = () => {
 
   return (
     <div
-      className="p-3 rounded-md w-[100%]"
+      className="p-3 rounded-md w-[100%] mb-3"
       style={{
         backgroundColor: Theme.Palette.Background.Alt,
         color: Theme.Palette.Neutral.Dark,
@@ -253,7 +253,7 @@ const PostHandler = () => {
         <input
           type="text"
           placeholder="What's On Your Mind !!"
-          className="w-[100%] rounded-full px-3 outline-none"
+          className="w-[100%] rounded-md px-3 outline-none"
           style={{ backgroundColor: Theme.Palette.Background.Default }}
           onChange={(E) => {
             SetValues("Description", E.target.value);
@@ -401,7 +401,7 @@ const PostHandler = () => {
         </section>
         <section className="flex text-xs items-center">
           <button
-            className="rounded-full px-4 py-2"
+            className="rounded-full px-4 py-2 text-black"
             style={{ backgroundColor: Theme.Palette.Primary.Main }}
             onClick={SubmitPost}
           >

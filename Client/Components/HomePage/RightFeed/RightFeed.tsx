@@ -37,7 +37,7 @@ const RightFeed = () => {
       <div className="max-h-[30vh] overflow-scroll rounded-md" style={{ backgroundColor: Theme.Palette.Background.Alt }}>
       <p className="font-medium p-3">Friends List</p>
       {FriendList.map((Each, Ind) => {
-        return <FriendsList Friends={Each} key={Ind} />;
+        return <FriendsList Friends={Each} key={Ind} Controls={true} />;
       })}
       </div>
     </div>

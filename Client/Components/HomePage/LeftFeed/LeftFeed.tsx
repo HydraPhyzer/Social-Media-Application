@@ -9,11 +9,13 @@ import { CustomTheme } from "../../Themes/CustomTheme";
 import InsertCommentIcon from "@mui/icons-material/InsertComment";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import EmailIcon from "@mui/icons-material/Email";
+import { useRouter } from "next/router";
 
 const LeftFeed = () => {
   const User = useSelector((State: any) => {
     return State?.User;
   });
+  let Router=useRouter();
   const Posts = useSelector((State: any) => {
     return State?.Posts;
   });
@@ -59,7 +61,7 @@ const LeftFeed = () => {
         <div className="Left flex gap-x-2 items-center">
           <Avatar Path={`http://localhost:7001/Assets/${User?.PicturePath}`} />
           <div>
-            <p className="text-sm">{User?.FirstName + " " + User?.LastName}</p>
+            <p className="text-sm hover:underline hover:cursor-pointer" onClick={()=>{Router.push(`/search/${User?._id}`)}}>{User?.FirstName + " " + User?.LastName}</p>
             <p
               className="text-xs"
               style={{ color: Theme.Palette.Neutral.MediumMain }}
