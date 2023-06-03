@@ -214,7 +214,7 @@ App.get("/getallposts", async (Req, Res) => {
 App.get("/getallposts/:userid", async (Req, Res) => {
   try {
     const UserId = Req.params?.userid;
-    let AllPost = await Post.find({UserId:UserId}).sort({ createdAt: -1 });
+    let AllPost = await Post.find({ UserId: UserId }).sort({ createdAt: -1 });
     Res.status(201).json(AllPost);
   } catch (Error) {
     Res.status(400).json({ Error: "Unable to Get Post" });
@@ -444,14 +444,13 @@ App.get("/searchuser/:Query", async (Req, Res) => {
   }
 });
 App.get("/getsearchuser/:UserId", async (Req, Res) => {
-  try{
-    const ID=Req.params.UserId;
-    const Result=await User.find({_id:ID})
-    const AllPosts=await Post.find({UserId:ID})
-    Res.status(200).json({UserInfo:Result[0],PostInfo:AllPosts})
-  }
-  catch(Err){
-    Res.status(400).json({Error:"User Not Found"})
+  try {
+    const ID = Req.params.UserId;
+    const Result = await User.find({ _id: ID });
+    const AllPosts = await Post.find({ UserId: ID });
+    Res.status(200).json({ UserInfo: Result[0], PostInfo: AllPosts });
+  } catch (Err) {
+    Res.status(400).json({ Error: "User Not Found" });
   }
 });
 
@@ -474,6 +473,7 @@ const io = require("socket.io")(8800, {
 });
 
 let Arr: { UserId: string; SocketId: string }[] = [];
+let TempArr: { UserId: string; SocketId: string }[] = [];
 
 io.on("connection", (Socket: any) => {
   Socket.on("New-OnlineUser", (Val: string) => {
@@ -483,9 +483,28 @@ io.on("connection", (Socket: any) => {
     if (!Arr.some((User) => User?.UserId === Val)) {
       Arr.push({ UserId: Val, SocketId: Socket?.id });
     }
-    Socket.emit("Get-OnlineUsers", [...Arr]);
+    // Socket.emit("Get-OnlineUsers", [...Arr]);
+    io.emit("Get-OnlineUsers", [...Arr]);
   });
+
+  Socket.on("New-TypingUser", (Val: string) => {
+    if (!TempArr.some((User) => User?.UserId === Val)) {
+      TempArr.push({ UserId: Val, SocketId: Socket?.id });
+    }
+    Socket.emit("Get-TypingUsers", [...TempArr]);
+  });
+
+  Socket.on("Stop-TypingUser", (Val: string) => {
+    TempArr = TempArr.filter((User) => User?.UserId !== Val);
+    Socket.emit("Get-TypingUsers", [...TempArr]);
+  });
+
+  Socket.on("Get-TypingUsers", (Val: any) => {
+    io.emit("Take-TypingUsers", [...TempArr]);
+  });
+
   Socket.on("disconnect", () => {
     Arr = Arr.filter((User) => User?.SocketId !== Socket?.id);
+    io.emit("Get-OnlineUsers", [...Arr]);
   });
 });

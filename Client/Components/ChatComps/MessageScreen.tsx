@@ -1,4 +1,4 @@
-import React, { useMemo, useState,useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   createTheme,
   IconButton,
@@ -16,7 +16,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import FormData from "form-data";
 import { useDispatch } from "react-redux";
-import { SetChats } from "../../Redux/AuthReducer";
+import { SetChats, SetTypingUsers } from "../../Redux/AuthReducer";
+import { io } from "socket.io-client";
+import { Socket as Sock } from "socket.io-client";
 
 type PropsType = {
   Message: string;
@@ -25,7 +27,7 @@ type PropsType = {
 };
 
 const MessageScreen = () => {
-  const Scroll:any=useRef(null);
+  const Scroll: any = useRef(null);
   const Matches = useMediaQuery("(max-width:715px)");
   const [FriendSpecs, SetFriendSpecs] = useState(null);
   const [ShowToast, setShowToast] = React.useState<PropsType>({
@@ -35,6 +37,14 @@ const MessageScreen = () => {
   });
   let Dispatch = useDispatch();
   const [Text, setText] = useState("");
+  const [TypingStatus, SetTypingStatus] = useState(false);
+  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
+
+  const [TypingUsers, setTypingUsers] = useState(
+    useSelector((State: any) => State.TypingUsers)
+  );
+  let [TypingTimer, SetTypingTimer]: [TypingTimer: any, SetTypingTimer: any] =
+    useState(undefined);
   let UpdateState = () => {
     setShowToast({ ...ShowToast, Visible: false });
   };
@@ -61,10 +71,26 @@ const MessageScreen = () => {
     }
   };
 
+  useEffect(() => {
+    SetSocket(io("http://localhost:8800"));
+  }, []);
+
+  useEffect(() => {
+    TypingStatus
+      ? Socket?.emit("New-TypingUser", User?._id)
+      : Socket?.emit("Stop-TypingUser", User?._id);
+
+    Socket?.emit("Get-TypingUsers", User?._id);
+    Socket?.on("Take-TypingUsers", (Data: any) => {
+      setTypingUsers([...Data]);
+      Dispatch(SetTypingUsers({ TypingUser: Data }));
+    });
+  }, [Socket,TypingStatus]);
+
   React.useEffect(() => {
     GetFriendSpecs();
     setText("");
-    Scroll?.current?.scrollIntoView({behaviour:"smooth"});
+    Scroll?.current?.scrollIntoView({ behaviour: "smooth" });
   }, [Chats]);
 
   let SendMessage = async () => {
@@ -114,7 +140,11 @@ const MessageScreen = () => {
       {Chats && Object.keys(Chats).length > 0 ? (
         <div className="p-3 h-[85vh] flex flex-col justify-between overflow-scroll">
           <section>
-            <EachChatUser Friends={FriendSpecs} />
+            <EachChatUser
+              Friends={FriendSpecs}
+              // MyTypingUsers={TypingUsers}
+              Socket={Socket}
+            />
           </section>
           <section
             style={{ backgroundColor: Theme.Palette.Background.Default }}
@@ -159,10 +189,21 @@ const MessageScreen = () => {
                 onChange={(E) => {
                   setText(E.target.value);
                 }}
-                onKeyDown={(E) => {
+                onKeyUp={(E: any) => {
+                  clearTimeout(TypingTimer);
+                  let Value = setTimeout(() => {
+                    SetTypingStatus(false);
+                    // console.log("Not Typing");
+                  }, 2000);
+                  SetTypingTimer(Value);
+                }}
+                onKeyDown={(E: any) => {
                   if (E.key == "Enter" || E.keyCode === 13) {
                     SendMessage();
                   }
+                  clearTimeout(TypingTimer);
+                  SetTypingStatus(true);
+                  // console.log("Typing");
                 }}
               />
               <IconButton

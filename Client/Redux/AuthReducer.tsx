@@ -7,6 +7,7 @@ const InitialState = {
   Posts: [],
   Chats: {},
   OnlineUsers: [],
+  TypingUsers: [],
 };
 
 export const AuthSlice: any = createSlice({
@@ -48,6 +49,9 @@ export const AuthSlice: any = createSlice({
     SetOnlineUsers: (State, Action) => {
       State.OnlineUsers = Action.payload.OnlineUser;
     },
+    SetTypingUsers: (State, Action) => {
+      State.TypingUsers = Action.payload.TypingUser;
+    },
   },
 });
 
@@ -60,5 +64,6 @@ export const {
   PatchEachPost,
   SetChats,
   SetOnlineUsers,
+  SetTypingUsers
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

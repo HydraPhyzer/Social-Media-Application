@@ -14,10 +14,16 @@ import Axios from "../Components/Axios/Axios";
 import { useRouter } from "next/router";
 const { io } = require("socket.io-client");
 import { SetOnlineUsers } from "../Redux/AuthReducer";
+import { Socket as Sock } from "socket.io-client";
 
 const Home = () => {
   let [Move, setMove] = useState(false);
   const Matches = useMediaQuery("(max-width:715px)");
+  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
+
+  useEffect(() => {
+    SetSocket(io("http://localhost:8800"));
+  }, []);
 
   const Mode = useSelector((State: any) => State.Mode);
   let Theme = useMemo(() => {
@@ -52,16 +58,15 @@ const Home = () => {
   let Dispatch = useDispatch();
 
   useEffect(() => {
-    const Socket = io("http://localhost:8800");
 
-    Socket.on("connect", () => {
-      Socket.emit("New-OnlineUser", User?._id);
-      Socket.on("Get-OnlineUsers", (Val: any) => {
+    Socket?.on("connect", () => {
+      Socket?.emit("New-OnlineUser", User?._id);
+      Socket?.on("Get-OnlineUsers", (Val: any) => {
         console.log(Val);
         Dispatch(SetOnlineUsers({ OnlineUser: Val }));
       });
     });
-  }, []);
+  }, [Socket]);
 
   return (
     Move && (
