@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   createTheme,
   Divider,
@@ -24,8 +24,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FormData from "form-data";
 import Axios from "../../../Axios/Axios";
 import { config } from "process";
-import { SetPost } from "../../../../Redux/AuthReducer";
+import { SetNotifications, SetPost } from "../../../../Redux/AuthReducer";
 import CustomizedSnackbars from "../../../Toast/Toast";
+import { Socket as Sock, io } from "socket.io-client";
 
 type PostType = {
   Description: string;
@@ -62,6 +63,7 @@ const PostHandler = () => {
     Description: "",
     PostPicturePath: "",
   });
+  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
   const [File, setFile] = React.useState<File[]>([]);
   const [Progress, SetProgress] = React.useState<number>(0);
   const [SelectedFile, setSelectedFile] = React.useState<any>(null);
@@ -72,6 +74,10 @@ const PostHandler = () => {
     Visible: false,
     severity: "error",
   });
+
+  useEffect(()=>{
+    SetSocket(io("http://localhost:8801"));
+  },[])
 
   const SetValues = (Attr: string, Value: string) => {
     setPost({ ...Post, [Attr]: Value });
@@ -229,6 +235,12 @@ const PostHandler = () => {
           setAudioUrl("")
           setSelectedFile(null);
           Dispatch(SetPost({ Post: Res.data }));
+
+          Socket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
+
+          Socket?.on("Get-Notifications",(Data:any)=>{
+            Dispatch(SetNotifications({Notification:{...Data}}))
+          } )
         });
       } catch (Error: any) {
         setShowToast({
@@ -399,6 +411,7 @@ const PostHandler = () => {
           </IconButton>
           <p>Audio</p>
         </section>
+
         <section className="flex text-xs items-center">
           <button
             className="rounded-full px-4 py-2 text-black"

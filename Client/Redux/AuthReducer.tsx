@@ -1,5 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+type NotificationModel={
+  SenderId:string,
+  ReceiverId?:string,
+  Type:number,
+  SocketId:string,
+}
 const InitialState = {
   Mode: "Light",
   User: null,
@@ -8,6 +14,7 @@ const InitialState = {
   Chats: {},
   OnlineUsers: [],
   TypingUsers: [],
+  Notifications:{Unread:[],Read:[]} as {Unread:NotificationModel[],Read:NotificationModel[]}
 };
 
 export const AuthSlice: any = createSlice({
@@ -52,6 +59,9 @@ export const AuthSlice: any = createSlice({
     SetTypingUsers: (State, Action) => {
       State.TypingUsers = Action.payload.TypingUser;
     },
+    SetNotifications:(State,Action)=>{
+      State.Notifications = Action.payload.Notification
+    }
   },
 });
 
@@ -64,6 +74,7 @@ export const {
   PatchEachPost,
   SetChats,
   SetOnlineUsers,
-  SetTypingUsers
+  SetTypingUsers,
+  SetNotifications
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

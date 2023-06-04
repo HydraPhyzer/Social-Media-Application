@@ -26,7 +26,7 @@ const index = () => {
   let User = useSelector((State: any) => State?.User);
 
   useEffect(() => {
-    SetSocket(io("http://localhost:8800"));
+    SetSocket(io("http://localhost:8801"));
   }, []);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ const index = () => {
           </div>
           <div
             className={`w-[100%] rounded-md flex-[0.7] ${
-              Matches ? "order-3" : ""
+              Matches ? "order-3 " : ""
             }`}
           >
             <MessageScreen />

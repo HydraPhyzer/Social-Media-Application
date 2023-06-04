@@ -91,7 +91,11 @@ export default function CustomizedMenus() {
         {LoggedInUser?.FirstName + " " + LoggedInUser?.LastName}
       </Button>
       <StyledMenu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            Router.push(`/search/${User._id}`);
+          }}
+        >
           <Avatar
             Path={`http://localhost:7001/Assets/${LoggedInUser?.PicturePath}`}
           />

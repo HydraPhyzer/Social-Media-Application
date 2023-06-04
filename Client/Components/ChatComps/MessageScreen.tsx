@@ -72,7 +72,7 @@ const MessageScreen = () => {
   };
 
   useEffect(() => {
-    SetSocket(io("http://localhost:8800"));
+    SetSocket(io("http://localhost:8801"));
   }, []);
 
   useEffect(() => {
@@ -85,6 +85,15 @@ const MessageScreen = () => {
       setTypingUsers([...Data]);
       Dispatch(SetTypingUsers({ TypingUser: Data }));
     });
+
+    Socket?.on("GetChat", async(Data: any) => {
+      await Axios.get(`/getchats/${Chats?.SenderID}/${Chats?.ReceiverID}`).then(async (Res) => {
+        if (Res.data) {
+          Dispatch(SetChats({ Chats: Res.data }));
+        }
+      });
+    })
+
   }, [Socket,TypingStatus]);
 
   React.useEffect(() => {
@@ -138,7 +147,7 @@ const MessageScreen = () => {
       }}
     >
       {Chats && Object.keys(Chats).length > 0 ? (
-        <div className="p-3 h-[85vh] flex flex-col justify-between overflow-scroll">
+        <div className={`p-3 flex flex-col justify-between overflow-scroll ${Matches?"h-[65vh]":"h-[85vh]"}`} >
           <section>
             <EachChatUser
               Friends={FriendSpecs}

@@ -34,17 +34,23 @@ const ChatUsers = () => {
 
   return (
     <section
-      className="p-3 rounded-md max-h-[85vh]"
+      className={`p-3 rounded-md ${
+        Matches ? "h-fit flex-1" : "max-h-[85vh]"
+      }`}
       style={{
         backgroundColor: Theme.Palette.Background.Alt,
         color: Theme.Palette.Neutral.Dark,
       }}
     >
       {FriendList ? (
-        <div className="h-[85vh] overflow-scroll">
+        <div
+          className={`overflow-scroll ${
+            Matches ? " flex h-fit w-[100%] overflow-x-scroll gap-x-5" : "h-[85vh] justify-evenly"
+          }`}
+        >
           {FriendList.length > 0 ? (
             FriendList.map((Each, Ind) => {
-              return <EachChatUser Friends={Each} key={Ind} />;
+              return <EachChatUser Friends={Each} key={Ind} Control={Matches?true:false} />;
             })
           ) : (
             <div

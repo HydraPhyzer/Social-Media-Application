@@ -9,7 +9,7 @@ import { SetChats, SetTypingUsers } from "../../Redux/AuthReducer";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 
-const EachChatUser = ({ Friends, Socket }: any) => {
+const EachChatUser = ({ Friends, Socket, Control }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
   const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
@@ -35,11 +35,14 @@ const EachChatUser = ({ Friends, Socket }: any) => {
   const TypingUsers = useSelector((state: any) => state.TypingUsers);
 
   useEffect(() => {
-    Socket?.emit("Get-TypingUsers", {SenderId:User?._id, ReceiverId:Friends?._id});
+    Socket?.emit("Get-TypingUsers", {
+      SenderId: User?._id,
+      ReceiverId: Friends?._id,
+    });
     Socket?.on("Take-TypingUsers", (Data: any) => {
       // SetTyUser([...Data]);
       console.log("Typing Users :", Data);
-      Dispatch(SetTypingUsers({ TypingUser: Data })); 
+      Dispatch(SetTypingUsers({ TypingUser: Data }));
     });
   }, [Socket]);
 
@@ -60,7 +63,11 @@ const EachChatUser = ({ Friends, Socket }: any) => {
 
   return (
     <div
-      className="p-2 flex gap-x-5 bg-red-500 rounded-md items-center mb-1 cursor-pointer w-full"
+      className={`p-2 bg-red-500 rounded-md cursor-pointer ${
+        Control
+          ? "w-fit items-start mr-1"
+          : "w-full mb-1 items-center flex gap-x-5"
+      }`}
       style={{
         backgroundColor: Theme.Palette.Background.Default,
       }}
@@ -82,33 +89,42 @@ const EachChatUser = ({ Friends, Socket }: any) => {
         />
       </div>
       <div>
-        <p
-          className="text-sm"
-          style={{
-            color: Theme.Palette.Neutral.Dark,
-          }}
-        >
-          {Friends?.FirstName + " " + Friends?.LastName}
-        </p>
-        <p
-          className="text-xs"
-          style={{
-            color: Theme.Palette.Neutral.MediumMain,
-          }}
-        >
-          {OnlineUsers?.some(
-            (Each: { UserId: string; SocketId: string }) =>
-              Each?.UserId == Friends?._id
-          )
-            ? TypingUsers?.some(
-                (Each: { SenderId: string;ReceiverId:string; SocketId: string }) =>
-                  // Each?.UserId == Friends?._id
-                  Each?.SenderId == Friends?._id && Each?.ReceiverId == User?._id
-              )
-              ? "Typing..."
-              : "Online"
-            : "Offline"}
-        </p>
+        {!Control && (
+          <p
+            className="text-sm"
+            style={{
+              color: Theme.Palette.Neutral.Dark,
+            }}
+          >
+            {Friends?.FirstName + " " + Friends?.LastName}
+          </p>
+        )}
+        {!Control && (
+          <p
+            className="text-xs"
+            style={{
+              color: Theme.Palette.Neutral.MediumMain,
+            }}
+          >
+            {OnlineUsers?.some(
+              (Each: { UserId: string; SocketId: string }) =>
+                Each?.UserId == Friends?._id
+            )
+              ? TypingUsers?.some(
+                  (Each: {
+                    SenderId: string;
+                    ReceiverId: string;
+                    SocketId: string;
+                  }) =>
+                    // Each?.UserId == Friends?._id
+                    Each?.SenderId == Friends?._id &&
+                    Each?.ReceiverId == User?._id
+                )
+                ? "Typing..."
+                : "Online"
+              : "Offline"}
+          </p>
+        )}
       </div>
     </div>
   );

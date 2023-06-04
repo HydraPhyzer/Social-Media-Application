@@ -13,7 +13,7 @@ import { ThemeSettings } from "../Components/Themes/Themes";
 import Axios from "../Components/Axios/Axios";
 import { useRouter } from "next/router";
 const { io } = require("socket.io-client");
-import { SetOnlineUsers } from "../Redux/AuthReducer";
+import { SetNotifications, SetOnlineUsers } from "../Redux/AuthReducer";
 import { Socket as Sock } from "socket.io-client";
 
 const Home = () => {
@@ -22,7 +22,7 @@ const Home = () => {
   const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
 
   useEffect(() => {
-    SetSocket(io("http://localhost:8800"));
+    SetSocket(io("http://localhost:8801"));
   }, []);
 
   const Mode = useSelector((State: any) => State.Mode);
@@ -58,12 +58,15 @@ const Home = () => {
   let Dispatch = useDispatch();
 
   useEffect(() => {
-
     Socket?.on("connect", () => {
       Socket?.emit("New-OnlineUser", User?._id);
       Socket?.on("Get-OnlineUsers", (Val: any) => {
         console.log(Val);
         Dispatch(SetOnlineUsers({ OnlineUser: Val }));
+      });
+
+      Socket?.on("Get-Notifications", (Data: any) => {
+        Dispatch(SetNotifications({Notification:{...Data}}))
       });
     });
   }, [Socket]);
