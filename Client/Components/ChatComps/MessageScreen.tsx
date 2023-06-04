@@ -77,8 +77,8 @@ const MessageScreen = () => {
 
   useEffect(() => {
     TypingStatus
-      ? Socket?.emit("New-TypingUser", User?._id)
-      : Socket?.emit("Stop-TypingUser", User?._id);
+      ? Socket?.emit("New-TypingUser", {SenderId:User?._id, ReceiverId:Chats?.ReceiverID})
+      : Socket?.emit("Stop-TypingUser", {SenderId:User?._id, ReceiverId:Chats?.ReceiverID});
 
     Socket?.emit("Get-TypingUsers", User?._id);
     Socket?.on("Take-TypingUsers", (Data: any) => {

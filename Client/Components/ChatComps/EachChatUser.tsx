@@ -35,9 +35,10 @@ const EachChatUser = ({ Friends, Socket }: any) => {
   const TypingUsers = useSelector((state: any) => state.TypingUsers);
 
   useEffect(() => {
-    Socket?.emit("Get-TypingUsers", User?._id);
+    Socket?.emit("Get-TypingUsers", {SenderId:User?._id, ReceiverId:Friends?._id});
     Socket?.on("Take-TypingUsers", (Data: any) => {
       // SetTyUser([...Data]);
+      console.log("Typing Users :", Data);
       Dispatch(SetTypingUsers({ TypingUser: Data })); 
     });
   }, [Socket]);
@@ -100,8 +101,9 @@ const EachChatUser = ({ Friends, Socket }: any) => {
               Each?.UserId == Friends?._id
           )
             ? TypingUsers?.some(
-                (Each: { UserId: string; SocketId: string }) =>
-                  Each?.UserId == Friends?._id
+                (Each: { SenderId: string;ReceiverId:string; SocketId: string }) =>
+                  // Each?.UserId == Friends?._id
+                  Each?.SenderId == Friends?._id && Each?.ReceiverId == User?._id
               )
               ? "Typing..."
               : "Online"

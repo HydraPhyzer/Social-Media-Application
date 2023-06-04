@@ -473,7 +473,7 @@ const io = require("socket.io")(8800, {
 });
 
 let Arr: { UserId: string; SocketId: string }[] = [];
-let TempArr: { UserId: string; SocketId: string }[] = [];
+let TempArr: { SenderId: string;ReceiverId: string; SocketId: string }[] = [];
 
 io.on("connection", (Socket: any) => {
   Socket.on("New-OnlineUser", (Val: string) => {
@@ -487,15 +487,15 @@ io.on("connection", (Socket: any) => {
     io.emit("Get-OnlineUsers", [...Arr]);
   });
 
-  Socket.on("New-TypingUser", (Val: string) => {
-    if (!TempArr.some((User) => User?.UserId === Val)) {
-      TempArr.push({ UserId: Val, SocketId: Socket?.id });
+  Socket.on("New-TypingUser", ({SenderId, ReceiverId}:{SenderId:any, ReceiverId:any}) => {
+    if (!TempArr.some((User) => User?.SenderId === SenderId)) {
+      TempArr.push({ SenderId,ReceiverId, SocketId: Socket?.id });
     }
     Socket.emit("Get-TypingUsers", [...TempArr]);
   });
 
-  Socket.on("Stop-TypingUser", (Val: string) => {
-    TempArr = TempArr.filter((User) => User?.UserId !== Val);
+  Socket.on("Stop-TypingUser", ({SenderId, ReceiverId}:{SenderId:any, ReceiverId:any}) => {
+    TempArr = TempArr.filter((User) => User?.SenderId !== SenderId && User?.ReceiverId !== ReceiverId);
     Socket.emit("Get-TypingUsers", [...TempArr]);
   });
 
