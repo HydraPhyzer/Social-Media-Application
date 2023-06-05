@@ -8,11 +8,11 @@ import { useSelector } from "react-redux";
 import { ThemeSettings } from "../../Components/Themes/Themes";
 import ChatUsers from "../../Components/ChatComps/ChatUsers";
 import MessageScreen from "../../Components/ChatComps/MessageScreen";
-import { Socket as Sock, io } from "socket.io-client";
 import { useDispatch } from "react-redux";
-import { SetOnlineUsers } from "../../Redux/AuthReducer";
+import { SetOnlineUsers, SetUserSocket } from "../../Redux/AuthReducer";
+import { io } from "socket.io-client";
 
-const index = () => {
+const index = ({ UserSocket }: { UserSocket: any }) => {
   const Matches = useMediaQuery("(max-width:715px)");
   const Mode = useSelector((State: any) => State.Mode);
   let Theme = useMemo(() => {
@@ -20,25 +20,17 @@ const index = () => {
       ThemeSettings(Mode) as unknown as ThemeOptions
     ) as CustomTheme;
   }, [Mode]);
-  let Dispatch=useDispatch();
-  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
+  let Dispatch = useDispatch();
 
   let User = useSelector((State: any) => State?.User);
 
   useEffect(() => {
-    SetSocket(io("http://localhost:8801"));
+    UserSocket?.emit("New-OnlineUser", User?._id);
+    UserSocket?.on("Get-OnlineUsers", (Val: any) => {
+      Dispatch(SetOnlineUsers({ OnlineUser: Val }));
+    });
   }, []);
 
-  useEffect(() => {
-
-    Socket?.on("connect", () => {
-      Socket?.emit("New-OnlineUser", User?._id);
-      Socket?.on("Get-OnlineUsers", (Val: any) => {
-        console.log(Val);
-        Dispatch(SetOnlineUsers({ OnlineUser: Val }));
-      });
-    });
-  }, [Socket]);
   return (
     <div
       className="bg-red-500 h-[100vh]"
@@ -82,7 +74,7 @@ const index = () => {
               Matches ? "order-3 " : ""
             }`}
           >
-            <MessageScreen />
+            <MessageScreen UserSocket={UserSocket} />
           </div>
         </div>
       </section>

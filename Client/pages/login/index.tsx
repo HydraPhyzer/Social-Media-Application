@@ -16,15 +16,15 @@ import InputBase from "@mui/material/InputBase";
 import { Box, Button, FormControl, InputLabel, TextField } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-import { SetMode,SetLogIn} from "../../Redux/AuthReducer";
+import { SetMode, SetLogIn, SetUserSocket } from "../../Redux/AuthReducer";
 import Axios from "../../Components/Axios/Axios";
 import CustomizedSnackbars from "../../Components/Toast/Toast";
-
+import { io } from "socket.io-client";
 
 type PropsType = {
-    Message: string;
-    Visible: boolean;
-    severity: "error" | "warning" | "info" | "success";
+  Message: string;
+  Visible: boolean;
+  severity: "error" | "warning" | "info" | "success";
 };
 
 const Login = () => {
@@ -37,6 +37,7 @@ const Login = () => {
   const Matches = useMediaQuery("(max-width:600px)");
 
   const Mode = useSelector((State: any) => State.Mode);
+  const UserSocket = useSelector((State: any) => State.UserSocket);
   const Dispatch = useDispatch();
 
   let SetMod = () => {
@@ -63,12 +64,15 @@ const Login = () => {
           ...ShowToast,
           Message: "Successfully Logged In",
           Visible: true,
-          severity:"success"
+          severity: "success",
         });
-        Dispatch(SetLogIn({
-          User:Result.data.SearchUser,
-          Token:Result.data.Token
-        }))
+        Dispatch(
+          SetLogIn({
+            User: Result.data.SearchUser,
+            Token: Result.data.Token,
+          })
+        );
+
         resetForm();
         Router.push("/");
       });
@@ -80,9 +84,9 @@ const Login = () => {
       });
     }
   };
-  let UpdateState=()=>{
-    setShowToast({...ShowToast,Visible:false});
-  }
+  let UpdateState = () => {
+    setShowToast({ ...ShowToast, Visible: false });
+  };
 
   return (
     <Box
@@ -211,7 +215,18 @@ const Login = () => {
               )}
             </Formik>
           </Box>
-          <div>{ShowToast.Visible ? <CustomizedSnackbars Props={ShowToast} Func={()=>{UpdateState()}} /> : ""}</div>
+          <div>
+            {ShowToast.Visible ? (
+              <CustomizedSnackbars
+                Props={ShowToast}
+                Func={() => {
+                  UpdateState();
+                }}
+              />
+            ) : (
+              ""
+            )}
+          </div>
         </section>
       </div>
     </Box>

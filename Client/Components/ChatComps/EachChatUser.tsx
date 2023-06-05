@@ -9,12 +9,10 @@ import { SetChats, SetTypingUsers } from "../../Redux/AuthReducer";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 
-const EachChatUser = ({ Friends, Socket, Control }: any) => {
+const EachChatUser = ({ Friends, UserSocket, Control }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
   const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
-
-  // let [TyUser, SetTyUser] = useState<any>(null);
 
   let Theme = useMemo(() => {
     return createTheme(
@@ -23,30 +21,17 @@ const EachChatUser = ({ Friends, Socket, Control }: any) => {
   }, [Mode]);
   let Dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   // alert("Good")
-  //   Socket?.emit("Get-TypingUsers", User?._id);
-  //   Socket?.on("Take-TypingUsers", (Data: any) => {
-  //     console.log("Your Data :", Data);
-  //     SetTyUser((Prev:any)=>[...Data]);
-  //   });
-  // }, [Socket]);
-
   const TypingUsers = useSelector((state: any) => state.TypingUsers);
 
   useEffect(() => {
-    Socket?.emit("Get-TypingUsers", {
+    UserSocket?.emit("Get-TypingUsers", {
       SenderId: User?._id,
       ReceiverId: Friends?._id,
     });
-    Socket?.on("Take-TypingUsers", (Data: any) => {
-      // SetTyUser([...Data]);
-      console.log("Typing Users :", Data);
+    UserSocket?.on("Take-TypingUsers", (Data: any) => {
       Dispatch(SetTypingUsers({ TypingUser: Data }));
     });
-  }, [Socket]);
-
-  console.log("Typing Users :", TypingUsers);
+  }, [UserSocket]);
 
   let ShowChat = async (UserId: string, FriendId: string) => {
     await Axios.get(`/getchats/${UserId}/${FriendId}`).then((Res) => {

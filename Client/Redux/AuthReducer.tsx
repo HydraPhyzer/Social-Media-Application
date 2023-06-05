@@ -14,7 +14,8 @@ const InitialState = {
   Chats: {},
   OnlineUsers: [],
   TypingUsers: [],
-  Notifications:{Unread:[],Read:[]} as {Unread:NotificationModel[],Read:NotificationModel[]}
+  Notifications:{Unread:[],Read:[]} as {Unread:NotificationModel[],Read:NotificationModel[]},
+  UserSocket: null,
 };
 
 export const AuthSlice: any = createSlice({
@@ -61,6 +62,9 @@ export const AuthSlice: any = createSlice({
     },
     SetNotifications:(State,Action)=>{
       State.Notifications = Action.payload.Notification
+    },
+    SetUserSocket:(State,Action)=>{
+      State.UserSocket = Action.payload.UserSocket
     }
   },
 });
@@ -75,6 +79,7 @@ export const {
   SetChats,
   SetOnlineUsers,
   SetTypingUsers,
-  SetNotifications
+  SetNotifications,
+  SetUserSocket,
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

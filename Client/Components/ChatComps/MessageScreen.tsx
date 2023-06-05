@@ -17,8 +17,6 @@ import Box from "@mui/material/Box";
 import FormData from "form-data";
 import { useDispatch } from "react-redux";
 import { SetChats, SetTypingUsers } from "../../Redux/AuthReducer";
-import { io } from "socket.io-client";
-import { Socket as Sock } from "socket.io-client";
 
 type PropsType = {
   Message: string;
@@ -26,7 +24,7 @@ type PropsType = {
   severity: "error" | "warning" | "info" | "success";
 };
 
-const MessageScreen = () => {
+const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
   const Scroll: any = useRef(null);
   const Matches = useMediaQuery("(max-width:715px)");
   const [FriendSpecs, SetFriendSpecs] = useState(null);
@@ -38,7 +36,6 @@ const MessageScreen = () => {
   let Dispatch = useDispatch();
   const [Text, setText] = useState("");
   const [TypingStatus, SetTypingStatus] = useState(false);
-  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
 
   const [TypingUsers, setTypingUsers] = useState(
     useSelector((State: any) => State.TypingUsers)
@@ -59,42 +56,58 @@ const MessageScreen = () => {
 
   let GetFriendSpecs = async () => {
     try {
-      await Axios.get(`/getuser/${Chats?.ReceiverID}`).then((Res) => {
+      await Axios.get(
+        `/getuser/${
+          Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
+        }`
+      ).then((Res) => {
         SetFriendSpecs(Res.data);
       });
     } catch (Error: any) {
-      setShowToast({
-        ...ShowToast,
-        Message: Error?.response?.data.Error,
-        Visible: true,
-      });
+      if (Error?.Error) {
+        setShowToast({
+          ...ShowToast,
+          Message: Error?.response?.data.Error,
+          Visible: true,
+        });
+      }
     }
   };
 
   useEffect(() => {
-    SetSocket(io("http://localhost:8801"));
-  }, []);
-
-  useEffect(() => {
     TypingStatus
-      ? Socket?.emit("New-TypingUser", {SenderId:User?._id, ReceiverId:Chats?.ReceiverID})
-      : Socket?.emit("Stop-TypingUser", {SenderId:User?._id, ReceiverId:Chats?.ReceiverID});
+      ? UserSocket?.emit("New-TypingUser", {
+          SenderId: User?._id,
+          ReceiverId: Chats?.ReceiverID,
+        })
+      : UserSocket?.emit("Stop-TypingUser", {
+          SenderId: User?._id,
+          ReceiverId: Chats?.ReceiverID,
+        });
 
-    Socket?.emit("Get-TypingUsers", User?._id);
-    Socket?.on("Take-TypingUsers", (Data: any) => {
+    UserSocket?.emit("Get-TypingUsers", User?._id);
+    UserSocket?.on("Take-TypingUsers", (Data: any) => {
       setTypingUsers([...Data]);
       Dispatch(SetTypingUsers({ TypingUser: Data }));
     });
+  }, [TypingStatus]);
 
-    Socket?.on("GetChat", async(Data: any) => {
-      await Axios.get(`/getchats/${Chats?.SenderID}/${Chats?.ReceiverID}`).then(async (Res) => {
-        if (Res.data) {
-          Dispatch(SetChats({ Chats: Res.data }));
-        }
-      });
-    })
-
-  }, [Socket,TypingStatus]);
+  UserSocket?.on("Get-Chat", async () => {
+    await Axios.get(
+      `/getchats/${User?._id}/${
+        Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
+      }`
+    ).then((Res) => {
+      if (Res.data) {
+        Dispatch(SetChats({ Chats: Res?.data }));
+      }
+    });
+  });
+  // UserSocket?.on("Get-Chat", async (data: any) => {
+  //   console.log("Received Get-Chat event:", data);
+  //   console.log(UserSocket.id);
+  //   // Handle the received chat data here, e.g., dispatch an action to update the chat state
+  // });
 
   React.useEffect(() => {
     GetFriendSpecs();
@@ -113,8 +126,13 @@ const MessageScreen = () => {
     } else {
       try {
         let FrmData: any = new FormData();
-        FrmData.append("SenderID", Chats?.SenderID);
-        FrmData.append("ReceiverID", Chats?.ReceiverID);
+        // FrmData.append("SenderID", Chats?.SenderID);
+        FrmData.append("SenderID", User?._id);
+        // FrmData.append("ReceiverID", Chats?.ReceiverID);
+        FrmData.append(
+          "ReceiverID",
+          Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
+        );
         FrmData.append("Message", Text);
 
         await Axios.post("/sendmessage", FrmData, {
@@ -123,6 +141,12 @@ const MessageScreen = () => {
           },
         }).then(async (Res) => {
           if (Res.data) {
+            UserSocket?.emit(
+              "Send-Chat",
+              Chats?.ReceiverID == User?._id
+                ? Chats?.SenderID
+                : Chats?.ReceiverID
+            );
             Dispatch(SetChats({ Chats: Res.data }));
           }
           setText("");
@@ -147,12 +171,16 @@ const MessageScreen = () => {
       }}
     >
       {Chats && Object.keys(Chats).length > 0 ? (
-        <div className={`p-3 flex flex-col justify-between overflow-scroll ${Matches?"h-[65vh]":"h-[85vh]"}`} >
+        <div
+          className={`p-3 flex flex-col justify-between overflow-scroll ${
+            Matches ? "h-[65vh]" : "h-[85vh]"
+          }`}
+        >
           <section>
             <EachChatUser
               Friends={FriendSpecs}
               // MyTypingUsers={TypingUsers}
-              Socket={Socket}
+              Socket={UserSocket}
             />
           </section>
           <section
@@ -160,6 +188,7 @@ const MessageScreen = () => {
             className="flex-1 rounded-md p-3 overflow-scroll"
           >
             {Chats &&
+              Chats?.Messages &&
               Chats?.Messages.map((Each: any) => {
                 return (
                   <section

@@ -26,7 +26,6 @@ import Axios from "../../../Axios/Axios";
 import { config } from "process";
 import { SetNotifications, SetPost } from "../../../../Redux/AuthReducer";
 import CustomizedSnackbars from "../../../Toast/Toast";
-import { Socket as Sock, io } from "socket.io-client";
 
 type PostType = {
   Description: string;
@@ -63,7 +62,6 @@ const PostHandler = () => {
     Description: "",
     PostPicturePath: "",
   });
-  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
   const [File, setFile] = React.useState<File[]>([]);
   const [Progress, SetProgress] = React.useState<number>(0);
   const [SelectedFile, setSelectedFile] = React.useState<any>(null);
@@ -75,10 +73,6 @@ const PostHandler = () => {
     severity: "error",
   });
 
-  useEffect(()=>{
-    SetSocket(io("http://localhost:8801"));
-  },[])
-
   const SetValues = (Attr: string, Value: string) => {
     setPost({ ...Post, [Attr]: Value });
   };
@@ -88,6 +82,7 @@ const PostHandler = () => {
 
   const Mode = useSelector((State: any) => State?.Mode);
   const User = useSelector((State: any) => State?.User);
+  const UserSocket = useSelector((State: any) => State?.UserSocket);
   const Dispatch = useDispatch();
   let Theme = useMemo(() => {
     return createTheme(
@@ -119,6 +114,7 @@ const PostHandler = () => {
       });
     }
   };
+
   let onVideoDrop = (Files: any) => {
     const AcceptedFileTypes = ["video/mp4", "video/mpeg"];
     const FilteredFiles = Files.filter((file: File) =>
@@ -236,9 +232,9 @@ const PostHandler = () => {
           setSelectedFile(null);
           Dispatch(SetPost({ Post: Res.data }));
 
-          Socket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
+          UserSocket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
 
-          Socket?.on("Get-Notifications",(Data:any)=>{
+          UserSocket?.on("Get-Notifications",(Data:any)=>{
             Dispatch(SetNotifications({Notification:{...Data}}))
           } )
         });

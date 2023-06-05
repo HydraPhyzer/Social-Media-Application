@@ -334,16 +334,18 @@ App.post("/addcomment/:id", Upload.single("Image"), async (Req, Res) => {
 //   }
 // });
 App.get("/getchats/:SenderID/:ReceiverID", async (Req, Res) => {
-  let { SenderID, ReceiverID }: { SenderID: string; ReceiverID: string } =
-    Req.params;
+  let { SenderID, ReceiverID }: { SenderID: string; ReceiverID: string } =Req.params;
+
   let Result = await Chat.findOne({
     SenderID,
     ReceiverID,
   }).sort({ "Messages.timestamp": 1 });
-  let ResultTwo = await Chat.findOne({
+
+  let ResultTwo= await Chat.findOne({
     SenderID: ReceiverID,
     ReceiverID: SenderID,
   }).sort({ "Messages.timestamp": 1 });
+
   if (!Result && !ResultTwo) {
     Result = await new Chat({
       SenderID,
@@ -425,7 +427,7 @@ App.get("/getuser/:id", async (Req, Res) => {
       Res.status(200).json(Result);
     }
   } catch (Err) {
-    Res.status(400).json({ Error: "Unable to Fetch Messages" });
+    Res.status(400).json({ Error: "Unable to Fetch Users" });
   }
 });
 
@@ -466,7 +468,7 @@ Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")
     console.log(`${Error.name} Did Not Conncet`);
   });
 
-const io = require("socket.io")(8801, {
+const io = require("socket.io")(7963, {
   cors: {
     origin: "http://localhost:3000",
   },
@@ -478,6 +480,7 @@ type NotificationModel = {
   Type: number;
   SocketId: string;
 };
+
 let Arr: { UserId: string; SocketId: string }[] = [];
 let TempArr: { SenderId: string; ReceiverId: string; SocketId: string }[] = [];
 let Notifications = { Unread: [], Read: [] } as {
@@ -486,6 +489,7 @@ let Notifications = { Unread: [], Read: [] } as {
 };
 
 io.on("connection", (Socket: any) => {
+  Socket.join(Socket.id);
   Socket.on("New-OnlineUser", (Val: string) => {
     // if(!Arr.includes(Val)){
     //   Arr.push(Val);
@@ -534,11 +538,14 @@ io.on("connection", (Socket: any) => {
     io.emit("Get-Notifications", {...Notifications});
   })
 
-  const Cstream=Chat.watch();
-
-  Cstream.on("change", (change: any) => {
-    console.log(change.fullDocument);
-    io.emit("GetChat",change.fullDocument);
+  Socket.on("Send-Chat", (to:string) => {
+    let GetUser=Arr.find((User) => User?.UserId === to);
+    if(GetUser){
+      if (io.sockets.sockets.has(GetUser.SocketId)) {
+        console.log("Yes This is Valid ",GetUser)
+      }
+      io.emit("Get-Chat", {to});
+    }
   })
 
   Socket.on("disconnect", () => {

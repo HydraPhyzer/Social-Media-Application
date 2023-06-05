@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState, use } from "react";
+import React, { useMemo, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -13,9 +13,8 @@ import { CustomTheme } from "../../Themes/CustomTheme";
 import AppInfo from "../../AppInfo/AppInfo";
 import { useRouter } from "next/router";
 import Axios from "../../Axios/Axios";
-import { Socket as Sock, io } from "socket.io-client";
 
-const LargeHeader: any = () => {
+const LargeHeader: any = ({UserSocket}:{UserSocket:any}) => {
   let [SearchedUser, setSearchUser] = React.useState([]);
   let [UserSpec, SetUserSpec] = React.useState({
     Unread: [] as any[],
@@ -26,11 +25,6 @@ const LargeHeader: any = () => {
     return State?.User;
   });
 
-  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
-
-  useEffect(() => {
-    SetSocket(io("http://localhost:8801"));
-  }, []);
   const Mode = useSelector((State: any) => State.Mode);
   const Dispatch = useDispatch();
   let Router = useRouter();
@@ -58,10 +52,11 @@ const LargeHeader: any = () => {
   let Notifications = useSelector((State: any) => State.Notifications);
 
   useEffect(() => {
-    Socket?.on("Get-Notifications", (Data: any) => {
+    UserSocket?.on("Get-Notifications", (Data: any) => {
       Dispatch(SetNotifications({ Notification: { ...Data } }));
     });
-  }, [Socket]);
+  }, [UserSocket]);
+
 
   useEffect(() => {
     GetUserSpecs();
@@ -94,7 +89,7 @@ const LargeHeader: any = () => {
   };
 
   let Clear = () => {
-    Socket?.emit("Clear-Notification");
+    UserSocket?.emit("Clear-Notification");
   };
 
   return (

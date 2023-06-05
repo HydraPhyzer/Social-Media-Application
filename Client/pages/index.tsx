@@ -12,18 +12,17 @@ import { CustomTheme } from "../Components/Themes/CustomTheme";
 import { ThemeSettings } from "../Components/Themes/Themes";
 import Axios from "../Components/Axios/Axios";
 import { useRouter } from "next/router";
-const { io } = require("socket.io-client");
-import { SetNotifications, SetOnlineUsers } from "../Redux/AuthReducer";
-import { Socket as Sock } from "socket.io-client";
+import { Socket as Sack, io } from "socket.io-client";
+import {
+  SetNotifications,
+  SetOnlineUsers,
+  SetUserSocket,
+} from "../Redux/AuthReducer";
 
-const Home = () => {
+const Home = ({ UserSocket }: { UserSocket: any }) => {
   let [Move, setMove] = useState(false);
-  const Matches = useMediaQuery("(max-width:715px)");
-  const [Socket, SetSocket] = useState<Sock | undefined>(undefined);
 
-  useEffect(() => {
-    SetSocket(io("http://localhost:8801"));
-  }, []);
+  const Matches = useMediaQuery("(max-width:715px)");
 
   const Mode = useSelector((State: any) => State.Mode);
   let Theme = useMemo(() => {
@@ -35,6 +34,8 @@ const Home = () => {
   let Router = useRouter();
   let Token = useSelector((State: any) => State?.Token);
   let User = useSelector((State: any) => State?.User);
+  // let UserSocket = useSelector((State: any) => State?.UserSocket);
+  let Dispatch = useDispatch();
 
   useEffect(() => {
     let VerifyUser = async () => {
@@ -55,21 +56,26 @@ const Home = () => {
     };
     VerifyUser();
   }, []);
-  let Dispatch = useDispatch();
+
+  // MySocket?.on("connect", () => {
+  //   alert(MySocket?.id);
+  // });
+
+  // useEffect(() => {
+  //   UserSocket === null &&
+  //     Dispatch(SetUserSocket({ UserSocket: io("http://localhost:7963") }));
+  // }, []);
 
   useEffect(() => {
-    Socket?.on("connect", () => {
-      Socket?.emit("New-OnlineUser", User?._id);
-      Socket?.on("Get-OnlineUsers", (Val: any) => {
-        console.log(Val);
-        Dispatch(SetOnlineUsers({ OnlineUser: Val }));
-      });
-
-      Socket?.on("Get-Notifications", (Data: any) => {
-        Dispatch(SetNotifications({Notification:{...Data}}))
-      });
+    UserSocket?.emit("New-OnlineUser", User?._id);
+    UserSocket?.on("Get-OnlineUsers", (Val: any) => {
+      Dispatch(SetOnlineUsers({ OnlineUser: Val }));
     });
-  }, [Socket]);
+
+    UserSocket?.on("Get-Notifications", (Data: any) => {
+      Dispatch(SetNotifications({ Notification: { ...Data } }));
+    });
+  }, []);
 
   return (
     Move && (

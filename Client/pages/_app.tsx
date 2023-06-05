@@ -5,6 +5,7 @@ import Head from "next/head";
 import AuthReducer from "../Redux/AuthReducer";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
+import Socket from "../Components/Socket/Socket";
 import {
   persistStore,
   persistReducer,
@@ -17,6 +18,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { PersistGate } from "redux-persist/integration/react";
+import React from "react";
 
 const PersistConfig = { key: "root", storage, version: 1 };
 const PersistReducer = persistReducer(PersistConfig, AuthReducer);
@@ -32,7 +34,6 @@ const Store = configureStore({
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
-
   return (
     <div>
       <Head>
@@ -45,7 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
       <Provider store={Store}>
         <PersistGate loading={null} persistor={persistStore(Store)}>
-          <Component {...pageProps} />
+            <Component {...pageProps} UserSocket={Socket} />
         </PersistGate>
       </Provider>
     </div>
