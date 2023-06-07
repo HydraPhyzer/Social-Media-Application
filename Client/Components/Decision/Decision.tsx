@@ -26,7 +26,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" {...props} />;
 });
 
-export default function Decision({ PostId }: any) {
+export default function Decision({ PostId, UserSocket, User }: any) {
   const [open, setOpen] = React.useState(false);
 
   let Dispatch = useDispatch();
@@ -44,13 +44,23 @@ export default function Decision({ PostId }: any) {
     ) as CustomTheme;
   }, [Mode]);
 
+  React.useEffect(() => {
+    UserSocket?.on("Get-Feed", (Data: any) => {
+      Dispatch(SetPost({ Post: Data }));
+    });
+  }, []);
+
   let DeletePost = () => {
     let FrmData: any = new FormData();
     FrmData.append("PostId", PostId);
 
     Axios.delete(`/deletepost/${PostId}`, {}).then(() => {
       Axios.get("/getallposts").then((Res) => {
-        Dispatch(SetPost({ Post: Res.data }));
+        UserSocket?.emit("Update-Feed", {
+          Sender: User?._id,
+          Friends: User?.Friends,
+        });
+        // Dispatch(SetPost({ Post: Res.data }));
         setOpen(false);
       });
     });

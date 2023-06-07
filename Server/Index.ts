@@ -554,13 +554,35 @@ io.on("connection", (Socket: any) => {
     io.emit("Get-Notifications", { ...Notifications });
   });
 
-  Socket.on("Send-Chat", ({ Receiver, Sender }:{Receiver:any, Sender:any}) => {
-    console.log("Hello From ", Sender);
-    let GetUser = Arr.find((User) => User?.UserId === Receiver);
-    if (GetUser) {
-      io.to(GetUser?.SocketId).emit("Get-Chat", Sender);
+  Socket.on(
+    "Send-Chat",
+    ({ Receiver, Sender }: { Receiver: any; Sender: any }) => {
+      console.log("Hello From ", Sender);
+      let GetUser = Arr.find((User) => User?.UserId === Receiver);
+      if (GetUser) {
+        io.to(GetUser?.SocketId).emit("Get-Chat", Sender);
+      }
     }
-  });
+  );
+
+  Socket.on(
+    "Update-Feed",
+    async ({ Sender, Friends }: { Sender: string; Friends: [] }) => {
+      let AllPost = await Post.find().sort({
+        createdAt: -1,
+      });
+      Friends.map((Friend: any) => {
+        let GetUser = Arr.find((User) => User?.UserId == Friend);
+        if (GetUser) {
+          io.to(GetUser?.SocketId).emit("Get-Feed", AllPost);
+        }
+      });
+      io.to(Arr.find((User) => User?.UserId == Sender)?.SocketId).emit(
+        "Get-Feed",
+        AllPost
+      );
+    }
+  );
 
   Socket.on("disconnect", () => {
     Arr = Arr.filter((User) => User?.SocketId !== Socket?.id);

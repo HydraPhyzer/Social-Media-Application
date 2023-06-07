@@ -121,7 +121,7 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
               <div
                 className={`w-[100%] flex-[0.4] ${Matches ? "order-3" : ""}`}
               >
-                <MiddleFeed />
+                <MiddleFeed UserSocket={UserSocket} />
               </div>
               <div
                 className={`w-[100%] flex-[0.3] rounded-md ${

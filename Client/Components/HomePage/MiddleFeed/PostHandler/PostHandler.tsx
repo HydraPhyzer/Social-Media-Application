@@ -57,7 +57,7 @@ type PropsType = {
   severity: "error" | "warning" | "info" | "success";
 };
 
-const PostHandler = () => {
+const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
   const [Post, setPost] = React.useState<PostType>({
     Description: "",
     PostPicturePath: "",
@@ -82,13 +82,18 @@ const PostHandler = () => {
 
   const Mode = useSelector((State: any) => State?.Mode);
   const User = useSelector((State: any) => State?.User);
-  const UserSocket = useSelector((State: any) => State?.UserSocket);
   const Dispatch = useDispatch();
   let Theme = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
     ) as CustomTheme;
   }, [Mode]);
+
+  useEffect(() => {
+    UserSocket?.on("Get-Feed", (Data: any) => {
+      Dispatch(SetPost({ Post: Data }));
+    });
+  }, []);
 
   let onDrop = (Files: any) => {
     const AcceptedFileTypes = ["image/png", "image/jpeg", "image/jpg"];
@@ -228,15 +233,19 @@ const PostHandler = () => {
           SetProgress(0);
           setFile([]);
           setVideoUrl("");
-          setAudioUrl("")
+          setAudioUrl("");
           setSelectedFile(null);
-          Dispatch(SetPost({ Post: Res.data }));
+          // Dispatch(SetPost({ Post: Res.data }));
 
-          UserSocket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
+          // UserSocket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
 
-          UserSocket?.on("Get-Notifications",(Data:any)=>{
-            Dispatch(SetNotifications({Notification:{...Data}}))
-          } )
+          // UserSocket?.on("Get-Notifications",(Data:any)=>{
+          //   Dispatch(SetNotifications({Notification:{...Data}}))
+          // })
+          UserSocket?.emit("Update-Feed", {
+            Sender: User?._id,
+            Friends: User?.Friends,
+          });
         });
       } catch (Error: any) {
         setShowToast({

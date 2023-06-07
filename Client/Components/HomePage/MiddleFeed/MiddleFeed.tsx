@@ -6,7 +6,7 @@ import DisplayPosts from "./DisplayPosts";
 import { SetPost } from "../../../Redux/AuthReducer";
 import Axios from "../../Axios/Axios";
 
-const MiddleFeed = () => {
+const MiddleFeed = ({ UserSocket }: { UserSocket: any }) => {
   let Dispatch = useDispatch();
 
   let [Render, setRender] = useState(false);
@@ -24,12 +24,12 @@ const MiddleFeed = () => {
 
   return (
     <div className="max-h-[85vh] overflow-scroll">
-      <PostHandler />
+      <PostHandler UserSocket={UserSocket} />
 
       {Post &&
         Render &&
         Post.map((EachPost: any, Ind: number) => {
-          return <DisplayPosts key={Ind} SinglePost={EachPost} />;
+          return <DisplayPosts key={Ind} SinglePost={EachPost} UserSocket={UserSocket} />;
         })}
     </div>
   );

@@ -18,7 +18,7 @@ import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import Decision from "../../Decision/Decision";
 import { useRouter } from "next/router";
 
-const DisplayPosts = ({ SinglePost }: any) => {
+const DisplayPosts = ({ SinglePost,UserSocket }: any) => {
   const User = useSelector((State: any) => {
     return State?.User;
   });
@@ -126,7 +126,7 @@ const DisplayPosts = ({ SinglePost }: any) => {
           </div>
           <div className="Right">
             {SinglePost?.UserId == User?._id ? (
-              <Decision PostId={SinglePost?._id} />
+              <Decision PostId={SinglePost?._id} UserSocket={UserSocket} User={User}/>
             ) : User?.Friends.includes(SinglePost?.UserId) ? (
               <IconButton onClick={RemoveFriend}>
                 <PersonRemoveIcon
