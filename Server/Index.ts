@@ -334,14 +334,15 @@ App.post("/addcomment/:id", Upload.single("Image"), async (Req, Res) => {
 //   }
 // });
 App.get("/getchats/:SenderID/:ReceiverID", async (Req, Res) => {
-  let { SenderID, ReceiverID }: { SenderID: string; ReceiverID: string } =Req.params;
+  let { SenderID, ReceiverID }: { SenderID: string; ReceiverID: string } =
+    Req.params;
 
   let Result = await Chat.findOne({
     SenderID,
     ReceiverID,
   }).sort({ "Messages.timestamp": 1 });
 
-  let ResultTwo= await Chat.findOne({
+  let ResultTwo = await Chat.findOne({
     SenderID: ReceiverID,
     ReceiverID: SenderID,
   }).sort({ "Messages.timestamp": 1 });
@@ -525,28 +526,41 @@ io.on("connection", (Socket: any) => {
     io.emit("Take-TypingUsers", [...TempArr]);
   });
 
-  Socket.on("Insert-New-Notification",({SenderId,ReceiverId,Type}: {SenderId: string;ReceiverId?: string;Type: number}) => {
-      Notifications.Unread.push({SenderId,ReceiverId,Type,SocketId: Socket.id});
-      io.emit("Get-Notifications", {...Notifications});
-      console.log(Notifications)
+  Socket.on(
+    "Insert-New-Notification",
+    ({
+      SenderId,
+      ReceiverId,
+      Type,
+    }: {
+      SenderId: string;
+      ReceiverId?: string;
+      Type: number;
+    }) => {
+      Notifications.Unread.push({
+        SenderId,
+        ReceiverId,
+        Type,
+        SocketId: Socket.id,
+      });
+      io.emit("Get-Notifications", { ...Notifications });
+      console.log(Notifications);
     }
   );
 
   Socket.on("Clear-Notification", () => {
     Notifications.Unread = [];
     Notifications.Read = [];
-    io.emit("Get-Notifications", {...Notifications});
-  })
+    io.emit("Get-Notifications", { ...Notifications });
+  });
 
-  Socket.on("Send-Chat", (to:string) => {
-    let GetUser=Arr.find((User) => User?.UserId === to);
-    if(GetUser){
-      if (io.sockets.sockets.has(GetUser.SocketId)) {
-        console.log("Yes This is Valid ",GetUser)
-      }
-      io.emit("Get-Chat", {to});
+  Socket.on("Send-Chat", ({ Receiver, Sender }:{Receiver:any, Sender:any}) => {
+    console.log("Hello From ", Sender);
+    let GetUser = Arr.find((User) => User?.UserId === Receiver);
+    if (GetUser) {
+      io.to(GetUser?.SocketId).emit("Get-Chat", Sender);
     }
-  })
+  });
 
   Socket.on("disconnect", () => {
     Arr = Arr.filter((User) => User?.SocketId !== Socket?.id);

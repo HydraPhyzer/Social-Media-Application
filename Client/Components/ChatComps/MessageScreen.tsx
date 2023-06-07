@@ -92,22 +92,21 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
     });
   }, [TypingStatus]);
 
-  UserSocket?.on("Get-Chat", async () => {
-    await Axios.get(
-      `/getchats/${User?._id}/${
-        Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
-      }`
-    ).then((Res) => {
-      if (Res.data) {
-        Dispatch(SetChats({ Chats: Res?.data }));
+  useEffect(() => {
+    UserSocket?.on("Get-Chat", async (Sender: string) => {
+      if (Sender != (User?._id ? Chats?.SenderID : Chats?.ReceiverID)) {
+        await Axios.get(
+          `/getchats/${User?._id}/${Sender
+            // Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
+          }`
+        ).then((Res) => {
+          if (Res.data) {
+            Dispatch(SetChats({ Chats: Res?.data }));
+          }
+        });
       }
     });
-  });
-  // UserSocket?.on("Get-Chat", async (data: any) => {
-  //   console.log("Received Get-Chat event:", data);
-  //   console.log(UserSocket.id);
-  //   // Handle the received chat data here, e.g., dispatch an action to update the chat state
-  // });
+  }, []);
 
   React.useEffect(() => {
     GetFriendSpecs();
@@ -141,12 +140,13 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
           },
         }).then(async (Res) => {
           if (Res.data) {
-            UserSocket?.emit(
-              "Send-Chat",
-              Chats?.ReceiverID == User?._id
-                ? Chats?.SenderID
-                : Chats?.ReceiverID
-            );
+            UserSocket?.emit("Send-Chat", {
+              Receiver:
+                Chats?.ReceiverID == User?._id
+                  ? Chats?.SenderID
+                  : Chats?.ReceiverID,
+              Sender: User?._id,
+            });
             Dispatch(SetChats({ Chats: Res.data }));
           }
           setText("");
