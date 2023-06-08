@@ -8,6 +8,7 @@ import {
   Typography,
   LinearProgressProps,
   LinearProgress,
+  useMediaQuery,
 } from "@mui/material";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -62,6 +63,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
     Description: "",
     PostPicturePath: "",
   });
+  const Matches = useMediaQuery("(max-width:715px)");
   const [File, setFile] = React.useState<File[]>([]);
   const [Progress, SetProgress] = React.useState<number>(0);
   const [SelectedFile, setSelectedFile] = React.useState<any>(null);
@@ -394,7 +396,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
               )}
             </Dropzone>
           </IconButton>
-          <p>Image</p>
+          {!Matches && <p>Image</p>}
         </section>
         <section className="flex text-xs items-center">
           <IconButton>
@@ -416,7 +418,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
               )}
             </Dropzone>
           </IconButton>
-          <p>Video</p>
+          {!Matches && <p>Video</p>}
         </section>
         <section className="flex text-xs items-center">
           <IconButton>
@@ -424,7 +426,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
               style={{ color: Theme.Palette.Neutral.MediumMain }}
             />
           </IconButton>
-          <p>File</p>
+          {!Matches && <p>File</p>}
         </section>
         <section className="flex text-xs items-center">
           <IconButton>
@@ -441,7 +443,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
               )}
             </Dropzone>
           </IconButton>
-          <p>Audio</p>
+          {!Matches && <p>Audio</p>}
         </section>
 
         <section className="flex text-xs items-center">

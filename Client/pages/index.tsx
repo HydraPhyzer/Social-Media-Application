@@ -13,10 +13,7 @@ import { ThemeSettings } from "../Components/Themes/Themes";
 import Axios from "../Components/Axios/Axios";
 import { useRouter } from "next/router";
 import { Socket as Sack, io } from "socket.io-client";
-import {
-  SetNotifications,
-  SetOnlineUsers,
-} from "../Redux/AuthReducer";
+import { SetNotifications, SetOnlineUsers } from "../Redux/AuthReducer";
 
 const Home = ({ UserSocket }: { UserSocket: any }) => {
   let [Move, setMove] = useState(false);
@@ -84,7 +81,11 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
             style={{ backgroundColor: Theme.Palette.Background.Alt }}
           >
             <div className="max-w-[1280px] mx-auto p-3">
-              {Matches ? <SmallHeader /> : <LargeHeader UserSocket={UserSocket} />}
+              {Matches ? (
+                <SmallHeader UserSocket={UserSocket}/>
+              ) : (
+                <LargeHeader UserSocket={UserSocket} />
+              )}
             </div>
           </header>
 
@@ -96,17 +97,19 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
                   : "max-w-[1280px] mx-auto p-3 flex justify-between gap-x-5"
               }
             >
-              <div
-                className={`w-[100%] flex-[0.3] rounded-md h-fit ${
-                  Matches ? "order-1" : ""
-                }`}
-                style={{
-                  backgroundColor: Theme.Palette.Background.Alt,
-                  color: Theme.Palette.Neutral.Dark,
-                }}
-              >
-                <LeftFeed />
-              </div>
+              {!Matches && (
+                <div
+                  className={`w-[100%] flex-[0.3] rounded-md h-fit ${
+                    Matches ? "order-1" : ""
+                  }`}
+                  style={{
+                    backgroundColor: Theme.Palette.Background.Alt,
+                    color: Theme.Palette.Neutral.Dark,
+                  }}
+                >
+                  <LeftFeed />
+                </div>
+              )}
               <div
                 className={`w-[100%] flex-[0.4] ${Matches ? "order-3" : ""}`}
               >
@@ -120,7 +123,7 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
                   color: Theme.Palette.Neutral.Dark,
                 }}
               >
-                <RightFeed />
+                {!Matches && <RightFeed />}
               </div>
             </div>
           </section>

@@ -169,13 +169,14 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
                 display: SearchedUser.length > 0 ? "flex" : "none",
               }}
             >
-              {SearchedUser.map((User: any) => {
+              {SearchedUser.map((User: any,Ind:any) => {
                 return (
                   <div
                     onClick={() => {
                       Router.push(`/search/${User._id}`);
                       setSearchUser([]);
                     }}
+                    key={Ind}
                     className="flex gap-2 items-center hover:cursor-pointer"
                   >
                     <Avatar

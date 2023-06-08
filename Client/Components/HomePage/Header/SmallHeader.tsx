@@ -3,9 +3,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import ChatIcon from "@mui/icons-material/Chat";
 import Dialog from "./Dialog";
-import { createTheme, Divider, IconButton, ThemeOptions } from "@mui/material";
+import { Badge, createTheme, Divider, IconButton, ThemeOptions } from "@mui/material";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { SetMode } from "../../../Redux/AuthReducer";
+import { SetMode, SetNotifications } from "../../../Redux/AuthReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
@@ -15,9 +15,17 @@ import Axios from "../../Axios/Axios";
 import { useRouter } from "next/router";
 import Avatar from "../../Avatar/Avatar";
 
-const SmallHeader = () => {
+const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
   const [Show, setShow] = React.useState(false);
   let [SearchedUser, setSearchUser] = React.useState([]);
+  let [ShowNoti, setShowNoti] = React.useState(false);
+  let [UserSpec, SetUserSpec] = React.useState({
+    Unread: [] as any[],
+    Read: [] as any[],
+  });
+  const User = useSelector((State: any) => {
+    return State?.User;
+  });
   let Router = useRouter();
   const Mode = useSelector((State: any) => State.Mode);
   const Dispatch = useDispatch();
@@ -28,6 +36,66 @@ const SmallHeader = () => {
   }, [Mode]);
   let SetMod = () => {
     Dispatch(SetMode());
+  };
+
+  let Notifications = useSelector((State: any) => State.Notifications);
+  React.useEffect(() => {
+    UserSocket?.on(
+      "Get-Notifications",
+      ({
+        SenderId,
+        Type,
+        SocketId,
+      }: {
+        SenderId: string;
+        Type: any;
+        SocketId: string;
+      }) => {
+        Dispatch(
+          SetNotifications({
+            Notification: {
+              ...Notifications,
+              Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
+            },
+          })
+        );
+      }
+    );
+  }, []);
+
+  
+  UserSocket?.on("Get-Cleared", () => {
+    Dispatch(SetNotifications({ Notification: { Unread: [], Read: [] } }));
+  });
+  
+  React.useEffect(() => {
+    GetUserSpecs();
+  }, [Notifications]);
+  let GetUserSpecs = async () => {
+    try {
+      Notifications.Unread.map(async (id: any) => {
+        let Arr: any = [];
+        console.log(id);
+        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
+          Arr.push(Data);
+        });
+        SetUserSpec((Prev: any) => {
+          return { ...Prev, Unread: [...Arr] };
+        });
+      });
+
+      Notifications.Read.map(async (id: any) => {
+        let Arr: any = [];
+        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
+          Arr.push(Data);
+        });
+        SetUserSpec((Prev: any) => {
+          return { ...Prev, Read: [...Arr] };
+        });
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   let SearchUser = async (Value: string) => {
@@ -49,6 +117,9 @@ const SmallHeader = () => {
         <p
           className="text-[1.3rem] font-bold"
           style={{ color: Theme.Palette.Primary.Main }}
+          onClick={() => {
+            Router.push("/");
+          }}
         >
           Connectify
         </p>
@@ -80,7 +151,7 @@ const SmallHeader = () => {
             }}
           >
             <input
-              className="outline-none bg-transparent"
+              className="outline-none bg-transparent relative"
               type="text"
               placeholder="Search ..."
               onChange={(E) => {
@@ -90,7 +161,7 @@ const SmallHeader = () => {
             <div
               className="rounded-md p-2 flex flex-col gap-y-2"
               style={{
-                width: "100%",
+                // width: "100%",
                 maxHeight: "40vh",
                 overflow: "scroll",
                 position: "absolute",
@@ -101,13 +172,14 @@ const SmallHeader = () => {
                 display: SearchedUser.length > 0 ? "flex" : "none",
               }}
             >
-              {SearchedUser.map((User: any) => {
+              {SearchedUser.map((User: any,Ind:any) => {
                 return (
                   <div
                     onClick={() => {
                       Router.push(`/search/${User._id}`);
                       setSearchUser([]);
                     }}
+                    key={Ind}
                     className="flex gap-2 items-center hover:cursor-pointer"
                   >
                     <Avatar
@@ -147,8 +219,15 @@ const SmallHeader = () => {
                 backgroundColor: Theme.Palette.Background.Default,
                 borderRadius: "5px",
               }}
+              onClick={() => {
+                setShowNoti(!ShowNoti);
+                ShowNoti && GetUserSpecs();
+              }}
             >
-              <CircleNotificationsIcon />
+              {/* <CircleNotificationsIcon /> */}
+              <Badge badgeContent={Notifications?.Unread.length} color="warning">
+            <CircleNotificationsIcon className="Bell" />
+          </Badge>
             </IconButton>
             <IconButton
               className="w-[25%]"
@@ -167,6 +246,105 @@ const SmallHeader = () => {
           <div>
             <Dialog />
           </div>
+          {ShowNoti && (
+            <div
+              className="rounded-md p-2 flex flex-col gap-y-2 shadow-2xl my-2"
+              style={{
+                width: "95vw",
+                zIndex:100000,
+                maxHeight: "40vh",
+                overflow: "scroll",
+                top: 45,
+                background: Theme.Palette.Background.Default,
+              }}
+            >
+              <>
+                {Notifications?.Unread.length > 0 && (
+                  <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
+                    Newer 🔔
+                  </small>
+                )}
+                {Notifications?.Unread.map((User: any) => {
+                  let Data = UserSpec.Unread.find(
+                    (id: any) => id?.data?._id == User?.SenderId
+                  );
+                  return (
+                    <div
+                      onClick={() => {
+                        Router.push(`/search/${User?._id}`);
+                        setSearchUser([]);
+                      }}
+                      className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-500 px-1 rounded-md"
+                    >
+                      <Avatar
+                        Path={`http://localhost:7001/Assets/${Data?.data?.PicturePath}`}
+                      />
+                      <p className="text-sm mb-2">
+                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
+                        <p className="text-white">
+                          {User?.Type == 1
+                            ? "Posted Something"
+                            : User?.Type == 2 && "Sent You Message"}
+                        </p>
+                      </p>
+                    </div>
+                  );
+                })}
+
+                {/* ======================== */}
+
+                {Notifications?.Read.length > 0 && (
+                  <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
+                    Older 🔔
+                  </small>
+                )}
+                {Notifications?.Read.map((User: any) => {
+                  let Data = UserSpec.Read.find(
+                    (id: any) => id?.data?._id == User?.SenderId
+                  );
+                  return (
+                    <div
+                      onClick={() => {
+                        Router.push(`/search/${Data?.data?._id}`);
+                        setSearchUser([]);
+                      }}
+                      className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-800 px-1 rounded-md"
+                    >
+                      <Avatar
+                        Path={`http://localhost:7001/Assets/${Data?.data?.PicturePath}`}
+                      />
+                      <p className="text-sm mb-2">
+                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
+                        <p className="text-white">
+                          {User?.Type == 1
+                            ? "Posted Something"
+                            : User?.Type == 2 && "Sent You Message"}
+                        </p>
+                      </p>
+                    </div>
+                  );
+                })}
+
+                {Notifications?.Unread.length == 0 &&
+                Notifications?.Read.length == 0 ? (
+                  <p className="text-xs text-start text-white my-auto">
+                    No Notifications to Read Yet{" "}
+                  </p>
+                ) : (
+                  <p
+                    onClick={() => {
+                      UserSocket?.emit("Clear-Notifications", {
+                        UserId: User._id,
+                      });
+                    }}
+                    className="text-white sticky bottom-0 left-[100%] text-xs bg-red-500 text-center  p-1 w-fit rounded-sm flex items-center"
+                  >
+                    Clear
+                  </p>
+                )}
+              </>
+            </div>
+          )}
         </div>
       ) : null}
     </div>

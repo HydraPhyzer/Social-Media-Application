@@ -231,7 +231,7 @@ const SearchUserPage = () => {
               >
                 {/* <RightFeed /> */}
                 <div className="flex flex-col gap-y-5">
-                  <Sponsers />
+                  {!Matches && <Sponsers />}
 
                   <div
                     className="max-h-[30vh] overflow-scroll rounded-md"
