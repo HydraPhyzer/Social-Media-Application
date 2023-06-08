@@ -82,6 +82,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
 
   const Mode = useSelector((State: any) => State?.Mode);
   const User = useSelector((State: any) => State?.User);
+  const Notifications = useSelector((State: any) => State?.Notifications);
   const Dispatch = useDispatch();
   let Theme = useMemo(() => {
     return createTheme(
@@ -93,6 +94,32 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
     UserSocket?.on("Get-Feed", (Data: any) => {
       Dispatch(SetPost({ Post: Data }));
     });
+
+    UserSocket?.on(
+      "Get-Notifications",
+      ({
+        SenderId,
+        Type,
+        SocketId,
+      }: {
+        SenderId: string;
+        Type: any;
+        SocketId: string;
+      }) => {
+        Dispatch(
+          SetNotifications({
+            Notification: {
+              ...Notifications,
+              Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
+            },
+          })
+        );
+      }
+    );
+
+    UserSocket.on("Get-Cleared",()=>{
+      Dispatch(SetNotifications({Notification:{Unread:[],Read:[]}}))
+    })
   }, []);
 
   let onDrop = (Files: any) => {
@@ -237,11 +264,11 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
           setSelectedFile(null);
           // Dispatch(SetPost({ Post: Res.data }));
 
-          // UserSocket?.emit("Insert-New-Notification", {SenderId:User?._id,Type:1});
-
-          // UserSocket?.on("Get-Notifications",(Data:any)=>{
-          //   Dispatch(SetNotifications({Notification:{...Data}}))
-          // })
+          UserSocket?.emit("New-Notification", {
+            SenderId: User?._id,
+            Friends: User?.Friends,
+            Type: 1,
+          });
           UserSocket?.emit("Update-Feed", {
             Sender: User?._id,
             Friends: User?.Friends,

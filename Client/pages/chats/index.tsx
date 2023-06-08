@@ -9,7 +9,7 @@ import { ThemeSettings } from "../../Components/Themes/Themes";
 import ChatUsers from "../../Components/ChatComps/ChatUsers";
 import MessageScreen from "../../Components/ChatComps/MessageScreen";
 import { useDispatch } from "react-redux";
-import { SetOnlineUsers, SetUserSocket } from "../../Redux/AuthReducer";
+import { SetOnlineUsers } from "../../Redux/AuthReducer";
 import { io } from "socket.io-client";
 
 const index = ({ UserSocket }: { UserSocket: any }) => {

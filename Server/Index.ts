@@ -527,31 +527,41 @@ io.on("connection", (Socket: any) => {
   });
 
   Socket.on(
-    "Insert-New-Notification",
+    "New-Notification",
     ({
       SenderId,
-      ReceiverId,
+      Friends,
       Type,
     }: {
       SenderId: string;
-      ReceiverId?: string;
+      Friends: string[];
       Type: number;
     }) => {
       Notifications.Unread.push({
         SenderId,
-        ReceiverId,
         Type,
         SocketId: Socket.id,
       });
-      io.emit("Get-Notifications", { ...Notifications });
-      console.log(Notifications);
+      Friends.map((Friend: any) => {
+        let GetUser = Arr.find((User) => User?.UserId === Friend);
+        if (GetUser) {
+          io.to(GetUser?.SocketId).emit("Get-Notifications", {
+            SenderId,
+            Type,
+            SocketId: Socket.id,
+          });
+        }
+      });
     }
   );
 
-  Socket.on("Clear-Notification", () => {
+  Socket.on("Clear-Notifications", ({ UserId }: any) => {
     Notifications.Unread = [];
     Notifications.Read = [];
-    io.emit("Get-Notifications", { ...Notifications });
+    let GetUser = Arr.find((User) => User?.UserId === UserId);
+    if (GetUser) {
+      io.to(GetUser?.SocketId).emit("Get-Cleared");
+    }
   });
 
   Socket.on(

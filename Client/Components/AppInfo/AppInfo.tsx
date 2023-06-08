@@ -56,6 +56,7 @@ export default function AppInfo() {
         scroll={scroll}
         aria-labelledby="scroll-dialog-title"
         aria-describedby="scroll-dialog-description"
+        className="bg-black"
       >
         <div>
           <DialogTitle 

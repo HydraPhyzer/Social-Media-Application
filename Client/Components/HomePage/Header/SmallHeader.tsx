@@ -139,6 +139,7 @@ const SmallHeader = () => {
             >
               <LightModeIcon />
             </IconButton>
+
             <IconButton
               className="w-[25%]"
               style={{
@@ -155,6 +156,9 @@ const SmallHeader = () => {
                 backgroundColor: Theme.Palette.Background.Default,
                 color: Theme.Palette.Primary.Main,
                 borderRadius: "5px",
+              }}
+              onClick={() => {
+                Router.push("/chats");
               }}
             >
               <ChatIcon />

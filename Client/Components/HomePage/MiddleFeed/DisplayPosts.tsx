@@ -18,11 +18,11 @@ import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import Decision from "../../Decision/Decision";
 import { useRouter } from "next/router";
 
-const DisplayPosts = ({ SinglePost,UserSocket }: any) => {
+const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
   const User = useSelector((State: any) => {
     return State?.User;
   });
-  let Router=useRouter();
+  let Router = useRouter();
 
   const IsLiked = Boolean(SinglePost?.Likes[User?._id]);
   const LikeCount = Object.keys(SinglePost?.Likes).length;
@@ -101,7 +101,12 @@ const DisplayPosts = ({ SinglePost,UserSocket }: any) => {
         }}
       >
         <section className="flex justify-between items-center">
-          <div className="Left flex gap-x-2 items-center" onClick={()=>{Router.push(`/search/${SinglePost?.UserId}`)}}>
+          <div
+            className="Left flex gap-x-2 items-center"
+            onClick={() => {
+              Router.push(`/search/${SinglePost?.UserId}`);
+            }}
+          >
             <Avatar
               Path={`http://localhost:7001/Assets/${SinglePost?.UserPicturePath}`}
             />
@@ -126,18 +131,18 @@ const DisplayPosts = ({ SinglePost,UserSocket }: any) => {
           </div>
           <div className="Right">
             {SinglePost?.UserId == User?._id ? (
-              <Decision PostId={SinglePost?._id} UserSocket={UserSocket} User={User}/>
+              <Decision
+                PostId={SinglePost?._id}
+                UserSocket={UserSocket}
+                User={User}
+              />
             ) : User?.Friends.includes(SinglePost?.UserId) ? (
               <IconButton onClick={RemoveFriend}>
-                <PersonRemoveIcon
-                  style={{ color: Theme.Palette.Neutral.Main }}
-                />
+                <PersonRemoveIcon className="p-1 bg-black rounded-full text-white" />
               </IconButton>
             ) : (
               <IconButton onClick={AddFriend}>
-                <PersonAddAlt1Icon
-                  style={{ color: Theme.Palette.Neutral.Main }}
-                />
+                <PersonAddAlt1Icon className="p-1 bg-black rounded-full text-green-400" />
               </IconButton>
             )}
           </div>

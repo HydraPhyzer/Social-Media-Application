@@ -16,7 +16,7 @@ import InputBase from "@mui/material/InputBase";
 import { Box, Button, FormControl, InputLabel, TextField } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-import { SetMode, SetLogIn, SetUserSocket } from "../../Redux/AuthReducer";
+import { SetMode, SetLogIn } from "../../Redux/AuthReducer";
 import Axios from "../../Components/Axios/Axios";
 import CustomizedSnackbars from "../../Components/Toast/Toast";
 import { io } from "socket.io-client";
@@ -37,7 +37,6 @@ const Login = () => {
   const Matches = useMediaQuery("(max-width:600px)");
 
   const Mode = useSelector((State: any) => State.Mode);
-  const UserSocket = useSelector((State: any) => State.UserSocket);
   const Dispatch = useDispatch();
 
   let SetMod = () => {

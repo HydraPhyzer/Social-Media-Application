@@ -63,9 +63,6 @@ export const AuthSlice: any = createSlice({
     SetNotifications:(State,Action)=>{
       State.Notifications = Action.payload.Notification
     },
-    SetUserSocket:(State,Action)=>{
-      State.UserSocket = Action.payload.UserSocket
-    }
   },
 });
 
@@ -80,6 +77,5 @@ export const {
   SetOnlineUsers,
   SetTypingUsers,
   SetNotifications,
-  SetUserSocket,
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

@@ -8,7 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
 import { TransitionProps } from "@mui/material/transitions";
 import { createTheme, IconButton, ThemeOptions } from "@mui/material";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { ThemeSettings } from "../Themes/Themes";
 import { CustomTheme } from "../Themes/CustomTheme";
 import { useSelector } from "react-redux";
@@ -69,7 +69,9 @@ export default function Decision({ PostId, UserSocket, User }: any) {
   return (
     <div>
       <IconButton onClick={handleClickOpen}>
-        <RemoveCircleIcon style={{ color: Theme.Palette.Neutral.Main }} />
+        <DeleteIcon
+          className="text-red-600 rounded-full p-1 bg-black"
+        />
       </IconButton>
       <Dialog
         open={open}
@@ -78,23 +80,35 @@ export default function Decision({ PostId, UserSocket, User }: any) {
         onClose={handleClose}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle style={{ fontSize: "0.9rem", fontWeight: "bold" }}>
+        <DialogTitle
+          style={{
+            fontSize: "0.9rem",
+            fontWeight: "bold",
+            background: Theme.Palette.Background.Alt,
+            color: Theme.Palette.Primary.Main,
+          }}
+        >
           {"Post Deletion ?"}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent
+          style={{
+            background: Theme.Palette.Background.Alt,
+          }}
+        >
           <DialogContentText
             id="alert-dialog-slide-description"
-            style={{ fontSize: "0.9rem" }}
+            style={{ fontSize: "0.9rem",color: Theme.Palette.Primary.Dark }}
           >
             Are You Sure About Deleting This Post ?
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button style={{ textTransform: "capitalize" }} onClick={handleClose}>
-            Disagree
+
+        <DialogActions style={{ background: Theme.Palette.Background.Alt }}>
+          <Button color="success" style={{ textTransform: "capitalize" }} onClick={handleClose}>
+            Nope
           </Button>
-          <Button style={{ textTransform: "capitalize" }} onClick={DeletePost}>
-            Agree
+          <Button color="warning" style={{ textTransform: "capitalize" }} onClick={DeletePost}>
+            Yeah
           </Button>
         </DialogActions>
       </Dialog>

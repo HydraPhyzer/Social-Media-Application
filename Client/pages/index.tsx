@@ -16,7 +16,6 @@ import { Socket as Sack, io } from "socket.io-client";
 import {
   SetNotifications,
   SetOnlineUsers,
-  SetUserSocket,
 } from "../Redux/AuthReducer";
 
 const Home = ({ UserSocket }: { UserSocket: any }) => {
@@ -34,7 +33,6 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
   let Router = useRouter();
   let Token = useSelector((State: any) => State?.Token);
   let User = useSelector((State: any) => State?.User);
-  // let UserSocket = useSelector((State: any) => State?.UserSocket);
   let Dispatch = useDispatch();
 
   useEffect(() => {
@@ -56,15 +54,6 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
     };
     VerifyUser();
   }, []);
-
-  // MySocket?.on("connect", () => {
-  //   alert(MySocket?.id);
-  // });
-
-  // useEffect(() => {
-  //   UserSocket === null &&
-  //     Dispatch(SetUserSocket({ UserSocket: io("http://localhost:7963") }));
-  // }, []);
 
   useEffect(() => {
     UserSocket?.emit("New-OnlineUser", User?._id);
@@ -95,7 +84,7 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
             style={{ backgroundColor: Theme.Palette.Background.Alt }}
           >
             <div className="max-w-[1280px] mx-auto p-3">
-              {Matches ? <SmallHeader /> : <LargeHeader />}
+              {Matches ? <SmallHeader /> : <LargeHeader UserSocket={UserSocket} />}
             </div>
           </header>
 

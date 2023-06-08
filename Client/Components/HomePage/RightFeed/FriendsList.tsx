@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 const FriendsList = ({ Friends }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
-  let Router=useRouter();
+  let Router = useRouter();
   const OnlineUsers = useSelector((State: any) => State.OnlineUsers);
   let Theme = useMemo(() => {
     return createTheme(
@@ -42,8 +42,13 @@ const FriendsList = ({ Friends }: any) => {
   return (
     <div className=" p-3 rounded-md text-sm">
       <div>
-        <div onClick={()=>{Router.push(`/search/${Friends?._id}`)}} className="flex justify-between items-center cursor-pointer">
-          <section className="flex items-center gap-x-2">
+        <div className="flex justify-between items-center cursor-pointer">
+          <section
+            className="flex items-center gap-x-2"
+            onClick={() => {
+              Router.push(`/search/${Friends?._id}`);
+            }}
+          >
             <Avatar
               Status={
                 OnlineUsers?.some(
@@ -55,19 +60,21 @@ const FriendsList = ({ Friends }: any) => {
               }
               Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}
             />
-            <p className="hover:underline hover:cursor-pointer">{Friends?.FirstName + " " + Friends?.LastName}</p>
+            <p className="hover:underline hover:cursor-pointer">
+              {Friends?.FirstName + " " + Friends?.LastName}
+            </p>
           </section>
 
           {User?.Friends?.includes(Friends?._id) ? (
             <IconButton onClick={RemoveFriend}>
               <PersonRemoveIcon
-                style={{ color: Theme.Palette.Neutral.MediumMain }}
+              className="p-1 bg-black rounded-full text-white"
               />
             </IconButton>
           ) : (
             <IconButton>
               <PersonAddAlt1Icon
-                style={{ color: Theme.Palette.Neutral.MediumMain }}
+              className="p-1 bg-black rounded-full text-green-400"
               />
             </IconButton>
           )}
