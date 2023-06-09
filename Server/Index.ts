@@ -24,7 +24,7 @@ let Morgan = require("morgan");
 const Multer = require("multer");
 let App = Express();
 let JWT = require("jsonwebtoken");
-const PORT = process.env.PORT || 7001;
+const PORT = process.env.PORT || 8001;
 const FS = require("fs");
 
 // const __Filename=fileURLToPath(require('import-meta').url)
@@ -230,12 +230,29 @@ App.patch("/addfriend", Upload.single("Image"), async (Req, Res) => {
   try {
     const { UserId, FriendId } = Req.body;
     await User.updateOne({ _id: UserId }, { $push: { Friends: FriendId } });
+    await User.updateOne({ _id: FriendId }, { $push: { Friends: UserId } });
+    await User.updateOne(
+      { _id: UserId },
+      { $pull: { Requests: { $in: FriendId } } }
+    );
 
     let Updated = await User.findOne({ _id: UserId });
-    console.log(UserId, FriendId);
     Res.status(201).json(Updated);
   } catch (Error) {
     Res.status(400).json({ Error: "Unable to Add Friend" });
+  }
+});
+App.patch("/sendrequest", Upload.single("Image"), async (Req, Res) => {
+  try {
+    const { UserId, FriendId } = Req.body;
+    if (!(await User.findOne({ _id: UserId, Requests: FriendId }))) {
+      await User.updateOne({ _id: FriendId }, { $push: { Requests: UserId } });
+      Res.status(201).json({ Message: "Request Sent Successfuly" });
+    } else {
+      Res.status(201).json({ Message: "Request Already Sent" });
+    }
+  } catch (Error) {
+    Res.status(400).json({ Error: "Unable to Send Request" });
   }
 });
 App.patch("/removefriend", Upload.single("Image"), async (Req, Res) => {
@@ -257,6 +274,20 @@ App.get("/getfriends/:id", async (Req, Res) => {
 
     let AllFriends = await User.find({ _id: { $in: IDArrays } }).select(
       "FirstName LastName PicturePath"
+    );
+
+    Res.send(AllFriends);
+  } catch (Error) {
+    Res.status(400).json({ Error: "Unable to Get Friends" });
+  }
+});
+App.get("/getrequests/:id", async (Req, Res) => {
+  try {
+    let CustomUser = await User.findOne({ _id: Req.params?.id });
+    let IDArrays = CustomUser?.Requests;
+
+    let AllFriends = await User.find({ _id: { $in: IDArrays } }).select(
+      "_id FirstName LastName PicturePath"
     );
 
     Res.send(AllFriends);
@@ -469,7 +500,7 @@ Mongoose.connect(process.env.MONGO_URL ? process.env.MONGO_URL : "")
     console.log(`${Error.name} Did Not Conncet`);
   });
 
-const io = require("socket.io")(7963, {
+const io = require("socket.io")(6944, {
   cors: {
     origin: "http://localhost:3000",
   },
@@ -591,6 +622,36 @@ io.on("connection", (Socket: any) => {
         "Get-Feed",
         AllPost
       );
+    }
+  );
+
+  Socket.on("Send-Request", async ({ ToID }: any) => {
+    let GetUser = Arr.find((User) => User?.UserId == ToID);
+    if (GetUser) {
+      let Updated = await User.findOne({ _id: ToID });
+      if (Updated) {
+        io.to(GetUser?.SocketId).emit("Take-Request", { Updated });
+      }
+    }
+  });
+
+  Socket.on(
+    "Update-Both-Friendship",
+    async ({ RealUser, Friend }: { RealUser: string; Friend: string }) => {
+      console.log("Good");
+      console.log(RealUser, Friend);
+      let GetUser = Arr.find((User) => User?.UserId == RealUser);
+      let GetFriend = Arr.find((User) => User?.UserId == Friend);
+
+      let UpdatedUser = await User.findOne({ _id: RealUser });
+      let UpdatedFriend = await User.findOne({ _id: Friend });
+
+      if (GetUser && GetFriend) {
+        io.to(GetUser?.SocketId).emit("Take-Request", { Updated: UpdatedUser });
+        io.to(GetFriend?.SocketId).emit("Take-Both-Friendship", {
+          Updated: UpdatedFriend,
+        });
+      }
     }
   );
 

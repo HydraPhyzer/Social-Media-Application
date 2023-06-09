@@ -295,7 +295,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
       }}
     >
       <div className="Top flex gap-x-2">
-        <Avatar Path={`http://localhost:7001/Assets/${User?.PicturePath}`} />
+        <Avatar Path={`http://localhost:8001/Assets/${User?.PicturePath}`} />
         <input
           type="text"
           placeholder="What's On Your Mind !!"

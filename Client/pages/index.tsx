@@ -102,12 +102,8 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
                   className={`w-[100%] flex-[0.3] rounded-md h-fit ${
                     Matches ? "order-1" : ""
                   }`}
-                  style={{
-                    backgroundColor: Theme.Palette.Background.Alt,
-                    color: Theme.Palette.Neutral.Dark,
-                  }}
                 >
-                  <LeftFeed />
+                  <LeftFeed UserSocket={UserSocket} />
                 </div>
               )}
               <div

@@ -26,6 +26,10 @@ const UserSchema = new Schema(
       type: Array,
       default: [],
     },
+    Requests :{
+      type: Array,
+      default: [],
+    },
     PicturePath: {
       type: String,
       default: "",

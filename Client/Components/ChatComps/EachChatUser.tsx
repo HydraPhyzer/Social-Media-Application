@@ -71,7 +71,7 @@ const EachChatUser = ({ Friends, UserSocket, Control }: any) => {
               ? true
               : false
           }
-          Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}
+          Path={`http://localhost:8001/Assets/${Friends?.PicturePath}`}
         />
       </div>
       <div>

@@ -97,7 +97,7 @@ export default function CustomizedMenus() {
           }}
         >
           <Avatar
-            Path={`http://localhost:7001/Assets/${LoggedInUser?.PicturePath}`}
+            Path={`http://localhost:8001/Assets/${LoggedInUser?.PicturePath}`}
           />
           {LoggedInUser?.FirstName + " " + LoggedInUser?.LastName}
         </MenuItem>

@@ -142,7 +142,7 @@ const SearchUserPage = () => {
                   <div className="flex justify-between items-center">
                     <div className="Left flex gap-x-2 items-center">
                       <Avatar
-                        Path={`http://localhost:7001/Assets/${UserDetails?.UserInfo?.PicturePath}`}
+                        Path={`http://localhost:8001/Assets/${UserDetails?.UserInfo?.PicturePath}`}
                       />
                       <div>
                         <p className="text-sm hover:underline hover:cursor-pointer">

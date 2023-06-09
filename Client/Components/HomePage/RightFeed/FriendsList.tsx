@@ -58,7 +58,7 @@ const FriendsList = ({ Friends }: any) => {
                   ? true
                   : false
               }
-              Path={`http://localhost:7001/Assets/${Friends?.PicturePath}`}
+              Path={`http://localhost:8001/Assets/${Friends?.PicturePath}`}
             />
             <p className="hover:underline hover:cursor-pointer">
               {Friends?.FirstName + " " + Friends?.LastName}

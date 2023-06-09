@@ -17,6 +17,13 @@ import SendIcon from "@mui/icons-material/Send";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import Decision from "../../Decision/Decision";
 import { useRouter } from "next/router";
+import CustomizedSnackbars from "../../Toast/Toast";
+
+type PropsType = {
+  Message: string;
+  Visible: boolean;
+  severity: "error" | "warning" | "info" | "success";
+};
 
 const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
   const User = useSelector((State: any) => {
@@ -24,6 +31,14 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
   });
   let Router = useRouter();
 
+  const [ShowToast, setShowToast] = React.useState<PropsType>({
+    Message: "",
+    Visible: false,
+    severity: "error",
+  });
+  let UpdateState = () => {
+    setShowToast({ ...ShowToast, Visible: false });
+  };
   const IsLiked = Boolean(SinglePost?.Likes[User?._id]);
   const LikeCount = Object.keys(SinglePost?.Likes).length;
   const CommentCount = SinglePost?.Comments?.length;
@@ -42,20 +57,34 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
   }, [Mode]);
   let Dispatch = useDispatch();
 
-  let AddFriend = async () => {
+  let SendRequest = async () => {
     let FrmData = new FormData();
 
     FrmData.append("UserId", User?._id);
     FrmData.append("FriendId", SinglePost?.UserId);
     try {
-      let Start = await Axios.patch("/addfriend", FrmData, {
+      await Axios.patch("/sendrequest", FrmData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+      }).then((Res: any) => {
+        setShowToast({
+          ...ShowToast,
+          Message: Res?.data?.Message,
+          Visible: true,
+          severity: "success",
+        });
+
+        UserSocket?.emit("Send-Request", { ToID: SinglePost?.UserId });
       });
-      Dispatch(SetUser({ User: Start.data }));
-      console.log(Start.data);
-    } catch (Error) {}
+    } catch (Error: any) {
+      setShowToast({
+        ...ShowToast,
+        Message: Error?.data?.Error,
+        Visible: true,
+        severity: "warning",
+      });
+    }
   };
   let RemoveFriend = async () => {
     let FrmData = new FormData();
@@ -108,7 +137,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
             }}
           >
             <Avatar
-              Path={`http://localhost:7001/Assets/${SinglePost?.UserPicturePath}`}
+              Path={`http://localhost:8001/Assets/${SinglePost?.UserPicturePath}`}
             />
             <div>
               <p className="text-sm hover:underline hover:cursor-pointer">
@@ -141,7 +170,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
                 <PersonRemoveIcon className="p-1 bg-black rounded-full text-white" />
               </IconButton>
             ) : (
-              <IconButton onClick={AddFriend}>
+              <IconButton onClick={SendRequest}>
                 <PersonAddAlt1Icon className="p-1 bg-black rounded-full text-green-400" />
               </IconButton>
             )}
@@ -161,7 +190,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
             ) ? (
               <div className="h-[300px] w-[100%]">
                 <Image
-                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                  src={`http://localhost:8001/Assets/${SinglePost?.PostPicturePath}`}
                   layout="fill"
                   alt="Post image"
                   objectFit="contain"
@@ -172,7 +201,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
               ) ? (
               <video width="100%" height="100%" controls>
                 <source
-                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                  src={`http://localhost:8001/Assets/${SinglePost?.PostPicturePath}`}
                 />
               </video>
             ) : [".m4a", ".mp3", "wav", "alac", "flac", "ogg"].some(
@@ -180,7 +209,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
               ) ? (
               <audio controls className="w-[100%] py-2">
                 <source
-                  src={`http://localhost:7001/Assets/${SinglePost?.PostPicturePath}`}
+                  src={`http://localhost:8001/Assets/${SinglePost?.PostPicturePath}`}
                 />
               </audio>
             ) : null}
@@ -255,6 +284,17 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
           })}
         </section>
       ) : null}
+
+      <div>
+        {ShowToast.Visible && (
+          <CustomizedSnackbars
+            Props={ShowToast}
+            Func={() => {
+              UpdateState();
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };

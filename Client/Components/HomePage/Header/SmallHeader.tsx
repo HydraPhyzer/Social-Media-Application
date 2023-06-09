@@ -183,7 +183,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                     className="flex gap-2 items-center hover:cursor-pointer"
                   >
                     <Avatar
-                      Path={`http://localhost:7001/Assets/${User?.PicturePath}`}
+                      Path={`http://localhost:8001/Assets/${User?.PicturePath}`}
                     />
                     <p className="text-sm">
                       {User?.FirstName + " " + User?.LastName}
@@ -277,7 +277,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                       className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-500 px-1 rounded-md"
                     >
                       <Avatar
-                        Path={`http://localhost:7001/Assets/${Data?.data?.PicturePath}`}
+                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
                       />
                       <p className="text-sm mb-2">
                         {Data?.data?.FirstName + " " + Data?.data?.LastName}
@@ -311,7 +311,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                       className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-800 px-1 rounded-md"
                     >
                       <Avatar
-                        Path={`http://localhost:7001/Assets/${Data?.data?.PicturePath}`}
+                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
                       />
                       <p className="text-sm mb-2">
                         {Data?.data?.FirstName + " " + Data?.data?.LastName}
