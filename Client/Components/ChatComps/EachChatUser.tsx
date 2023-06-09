@@ -1,6 +1,6 @@
 import Avatar from "../Avatar/Avatar";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState} from "react";
 import { createTheme, ThemeOptions, useMediaQuery } from "@mui/material";
 import { CustomTheme } from "../../Components/Themes/CustomTheme";
 import { ThemeSettings } from "../../Components/Themes/Themes";
@@ -8,6 +8,7 @@ import Axios from "../../Components/Axios/Axios";
 import { SetChats, SetTypingUsers } from "../../Redux/AuthReducer";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
+import { Console } from "console";
 
 const EachChatUser = ({ Friends, UserSocket, Control }: any) => {
   const Mode = useSelector((State: any) => State.Mode);

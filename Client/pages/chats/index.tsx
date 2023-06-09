@@ -49,34 +49,38 @@ const index = ({ UserSocket }: { UserSocket: any }) => {
           style={{ backgroundColor: Theme.Palette.Background.Alt }}
         >
           <div className="max-w-[1280px] mx-auto p-3">
-            {Matches ? <SmallHeader /> : <LargeHeader />}
+            {Matches ? (
+              <SmallHeader UserSocket={UserSocket} />
+            ) : (
+              <LargeHeader />
+            )}
           </div>
         </header>
       </section>
 
       <section className="w-[100vw]">
-        <div
-          className={
-            Matches
-              ? "max-w-[1280px] mx-auto p-3 flex justify-between gap-y-5 flex-col"
-              : "max-w-[1280px] mx-auto p-3 flex justify-between gap-x-5"
-          }
-        >
           <div
-            className={`w-[100%] flex-[0.3] rounded-md h-fit ${
-              Matches ? "order-1" : ""
-            }`}
+            className={
+              Matches
+                ? "max-w-[1280px] mx-auto p-3 flex justify-between gap-y-5 flex-col"
+                : "max-w-[1280px] mx-auto p-3 flex justify-between gap-x-5"
+            }
           >
-            <ChatUsers />
+            <div
+              className={`w-[100%] flex-[0.3] rounded-md h-fit ${
+                Matches ? "order-1" : ""
+              }`}
+            >
+              <ChatUsers />
+            </div>
+            <div
+              className={`w-[100%] rounded-md flex-[0.7] ${
+                Matches ? "order-3 " : ""
+              }`}
+            >
+              <MessageScreen UserSocket={UserSocket} />
+            </div>
           </div>
-          <div
-            className={`w-[100%] rounded-md flex-[0.7] ${
-              Matches ? "order-3 " : ""
-            }`}
-          >
-            <MessageScreen UserSocket={UserSocket} />
-          </div>
-        </div>
       </section>
     </div>
   );

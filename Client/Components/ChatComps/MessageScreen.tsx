@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect, useContext, useCallback } from "react";
 import {
   createTheme,
   IconButton,
@@ -92,21 +92,61 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
     });
   }, [TypingStatus]);
 
-  useEffect(() => {
-    UserSocket?.on("Get-Chat", async (Sender: string) => {
-      if (Sender != (User?._id ? Chats?.SenderID : Chats?.ReceiverID)) {
-        await Axios.get(
-          `/getchats/${User?._id}/${Sender
-            // Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
-          }`
-        ).then((Res) => {
-          if (Res.data) {
-            Dispatch(SetChats({ Chats: Res?.data }));
+  // useEffect(() => {
+  //   UserSocket?.on("Get-Chat", async (Sender: string) => {
+  //     if (
+  //       Sender==(Chats?.SenderID==User?._id?Chats?.ReceiverID:Chats?.SenderID) && User?.Friends?.includes(Sender)
+  //     ) {
+  //       await Axios.get(
+  //         `/getchats/${User?._id}/${
+  //           Sender
+  //           // Chats?.ReceiverID == User?._id ? Chats?.SenderID : Chats?.ReceiverID
+  //         }`
+  //       ).then((Res) => {
+  //         if (Res.data) {
+  //           Dispatch(SetChats({ Chats: Res?.data }));
+  //         }
+  //       });
+  //     }
+  //   });
+  // }, [UserSocket]);
+
+  // ...
+  const handleGetChat = useCallback(
+    async (Sender: string) => {
+      if (
+        Sender ===
+          (Chats?.SenderID === User?._id
+            ? Chats?.ReceiverID
+            : Chats?.SenderID) &&
+        User?.Friends?.includes(Sender)
+      ) {
+        try {
+          const response = await Axios.get(`/getchats/${User?._id}/${Sender}`);
+          if (response.data) {
+            Dispatch(SetChats({ Chats: response?.data }));
           }
-        });
+        } catch (error: any) {
+          setShowToast({
+            ...ShowToast,
+            Message: error?.response?.data.Error,
+            Visible: true,
+            severity: "warning",
+          });
+        }
       }
-    });
-  }, []);
+    },
+    [UserSocket, Chats, User, Dispatch, ShowToast]
+  );
+
+  useEffect(() => {
+    UserSocket?.on("Get-Chat", handleGetChat);
+    return () => {
+      UserSocket?.off("Get-Chat", handleGetChat);
+    };
+  }, [UserSocket, handleGetChat]);
+
+  // ...
 
   React.useEffect(() => {
     GetFriendSpecs();
@@ -140,6 +180,7 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
           },
         }).then(async (Res) => {
           if (Res.data) {
+            Dispatch(SetChats({ Chats: Res.data }));
             UserSocket?.emit("Send-Chat", {
               Receiver:
                 Chats?.ReceiverID == User?._id
@@ -147,7 +188,6 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
                   : Chats?.ReceiverID,
               Sender: User?._id,
             });
-            Dispatch(SetChats({ Chats: Res.data }));
           }
           setText("");
         });
@@ -206,7 +246,12 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
                       <p style={{ color: Theme.Palette.Neutral.Main }}>
                         {Each?.MessageText}
                       </p>
-                      <p className="text-xs self-end">
+                      <p
+                        className="text-xs self-end px-1 rounded-md p-1"
+                        style={{
+                          backgroundColor: Theme.Palette.Background.Default,
+                        }}
+                      >
                         {new Date(Each?.timestamp).toLocaleTimeString()}
                       </p>
                     </div>
