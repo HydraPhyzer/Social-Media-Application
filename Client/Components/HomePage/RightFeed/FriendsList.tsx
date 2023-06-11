@@ -10,7 +10,7 @@ import { SetUser } from "../../../Redux/AuthReducer";
 import Axios from "../../Axios/Axios";
 import { useRouter } from "next/router";
 
-const FriendsList = ({ Friends }: any) => {
+const FriendsList = ({ Friends, UserSocket }: any) => {
   const Mode = useSelector((State: any) => State.Mode);
   const User = useSelector((State: any) => State.User);
   let Router = useRouter();
@@ -35,7 +35,11 @@ const FriendsList = ({ Friends }: any) => {
         },
       });
       Dispatch(SetUser({ User: Start.data }));
-      console.log(Start.data);
+      UserSocket?.emit("Update-Both-Friendship", {
+        Friend: Friends?._id,
+        RealUser: User?._id,
+        Bell: false,
+      });
     } catch (Error) {}
   };
 
@@ -67,15 +71,11 @@ const FriendsList = ({ Friends }: any) => {
 
           {User?.Friends?.includes(Friends?._id) ? (
             <IconButton onClick={RemoveFriend}>
-              <PersonRemoveIcon
-              className="p-1 bg-black rounded-full text-white"
-              />
+              <PersonRemoveIcon className="p-1 bg-black rounded-full text-white" />
             </IconButton>
           ) : (
             <IconButton>
-              <PersonAddAlt1Icon
-              className="p-1 bg-black rounded-full text-green-400"
-              />
+              <PersonAddAlt1Icon className="p-1 bg-black rounded-full text-green-400" />
             </IconButton>
           )}
         </div>

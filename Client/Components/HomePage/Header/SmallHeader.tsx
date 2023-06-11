@@ -318,7 +318,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                         <p className="text-white">
                           {User?.Type == 1
                             ? "Posted Something"
-                            : User?.Type == 2 && "Sent You Message"}
+                            : User?.Type == 2 && "Sent You Request"}
                         </p>
                       </p>
                     </div>

@@ -17,6 +17,7 @@ import SendIcon from "@mui/icons-material/Send";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import Decision from "../../Decision/Decision";
 import { useRouter } from "next/router";
+import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import CustomizedSnackbars from "../../Toast/Toast";
 
 type PropsType = {
@@ -76,6 +77,11 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
         });
 
         UserSocket?.emit("Send-Request", { ToID: SinglePost?.UserId });
+        UserSocket?.emit("New-Notification", {
+          SenderId: User?._id,
+          Friends: [SinglePost?.UserId],
+          Type: 2,
+        });
       });
     } catch (Error: any) {
       setShowToast({
@@ -98,7 +104,11 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
         },
       });
       Dispatch(SetUser({ User: Start.data }));
-      console.log(Start.data);
+      UserSocket?.emit("Update-Both-Friendship", {
+        Friend: SinglePost?.UserId,
+        RealUser: User?._id,
+        Bell: false,
+      });
     } catch (Error) {}
   };
 
@@ -168,6 +178,10 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
             ) : User?.Friends.includes(SinglePost?.UserId) ? (
               <IconButton onClick={RemoveFriend}>
                 <PersonRemoveIcon className="p-1 bg-black rounded-full text-white" />
+              </IconButton>
+            ) : User?.Requests.includes(SinglePost?.UserId) ? (
+              <IconButton>
+                <HourglassTopIcon className="p-1 bg-black rounded-full text-yellow-500" />
               </IconButton>
             ) : (
               <IconButton onClick={SendRequest}>

@@ -44,11 +44,14 @@ const FriendRequest = ({ UserSocket }: { UserSocket: any }) => {
   }, [Mode]);
 
   useEffect(() => {
-    UserSocket?.on("Take-Request", ({ Updated }: any) => {
-      Dispatch(SetUser({ User: Updated }));
-      playSound();
-      GetFriendSpecs();
-    });
+    UserSocket?.on(
+      "Take-Request",
+      ({ Updated, Bell }: { Updated: any; Bell: boolean }) => {
+        Dispatch(SetUser({ User: Updated }));
+        Bell && playSound();
+        GetFriendSpecs();
+      }
+    );
     UserSocket?.on("Take-Both-Friendship", ({ Updated }: any) => {
       Dispatch(SetUser({ User: Updated }));
       GetFriendSpecs();
@@ -86,6 +89,35 @@ const FriendRequest = ({ UserSocket }: { UserSocket: any }) => {
       UserSocket?.emit("Update-Both-Friendship", {
         Friend: FriendID,
         RealUser: User?._id,
+        Bell: true,
+      });
+    } catch (Error: any) {
+      if (Error?.Error) {
+        setShowToast({
+          ...ShowToast,
+          Message: Error?.response?.data.Error,
+          Visible: true,
+        });
+      }
+    }
+  };
+
+  let DeclineRequest = (FriendID: any) => {
+    let FrmData = new FormData();
+
+    FrmData.append("UserId", User?._id);
+    FrmData.append("FriendId", FriendID);
+    try {
+      Axios.patch("/declinerequest", FrmData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }).then((Res) => {
+        Dispatch(SetUser({ User: Res.data }));
+        UserSocket?.emit("Send-Request", {
+          ToID: User?._id,
+          Bell: false,
+        });
       });
     } catch (Error) {}
   };
@@ -130,7 +162,11 @@ const FriendRequest = ({ UserSocket }: { UserSocket: any }) => {
                 >
                   <CheckCircleIcon className="text-green-500" />
                 </IconButton>
-                <IconButton>
+                <IconButton
+                  onClick={() => {
+                    DeclineRequest(MyUser?._id);
+                  }}
+                >
                   <CancelIcon className="text-red-500" />
                 </IconButton>
               </span>

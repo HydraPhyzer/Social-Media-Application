@@ -57,10 +57,6 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
     UserSocket?.on("Get-OnlineUsers", (Val: any) => {
       Dispatch(SetOnlineUsers({ OnlineUser: Val }));
     });
-
-    UserSocket?.on("Get-Notifications", (Data: any) => {
-      Dispatch(SetNotifications({ Notification: { ...Data } }));
-    });
   }, []);
 
   return (
@@ -82,7 +78,7 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
           >
             <div className="max-w-[1280px] mx-auto p-3">
               {Matches ? (
-                <SmallHeader UserSocket={UserSocket}/>
+                <SmallHeader UserSocket={UserSocket} />
               ) : (
                 <LargeHeader UserSocket={UserSocket} />
               )}
@@ -119,7 +115,7 @@ const Home = ({ UserSocket }: { UserSocket: any }) => {
                   color: Theme.Palette.Neutral.Dark,
                 }}
               >
-                {!Matches && <RightFeed />}
+                {!Matches && <RightFeed UserSocket={UserSocket} />}
               </div>
             </div>
           </section>

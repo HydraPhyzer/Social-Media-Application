@@ -25,7 +25,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FormData from "form-data";
 import Axios from "../../../Axios/Axios";
 import { config } from "process";
-import { SetNotifications, SetPost } from "../../../../Redux/AuthReducer";
+import { ClearNotification, SetNotifications, SetPost } from "../../../../Redux/AuthReducer";
 import CustomizedSnackbars from "../../../Toast/Toast";
 
 type PostType = {
@@ -86,7 +86,7 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
   const User = useSelector((State: any) => State?.User);
   const Notifications = useSelector((State: any) => State?.Notifications);
   const Dispatch = useDispatch();
-  let Theme = useMemo(() => {
+  let Theme:any = useMemo(() => {
     return createTheme(
       ThemeSettings(Mode) as unknown as ThemeOptions
     ) as CustomTheme;
@@ -97,30 +97,31 @@ const PostHandler = ({ UserSocket }: { UserSocket: any }) => {
       Dispatch(SetPost({ Post: Data }));
     });
 
-    UserSocket?.on(
-      "Get-Notifications",
-      ({
-        SenderId,
-        Type,
-        SocketId,
-      }: {
-        SenderId: string;
-        Type: any;
-        SocketId: string;
-      }) => {
-        Dispatch(
-          SetNotifications({
-            Notification: {
-              ...Notifications,
-              Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
-            },
-          })
-        );
-      }
-    );
+    // UserSocket?.on(
+    //   "Get-Notifications",
+    //   ({
+    //     SenderId,
+    //     Type,
+    //     SocketId,
+    //   }: {
+    //     SenderId: string;
+    //     Type: any;
+    //     SocketId: string;
+    //   }) => {
+    //     Dispatch(
+    //       SetNotifications({
+    //         Notification: {
+    //           ...Notifications,
+    //           Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
+    //         },
+    //       })
+    //     );
+    //   }
+    // );
 
     UserSocket.on("Get-Cleared",()=>{
-      Dispatch(SetNotifications({Notification:{Unread:[],Read:[]}}))
+      // Dispatch(SetNotifications({Notification:{Unread:[],Read:[]}}))
+      Dispatch(ClearNotification());
     })
   }, []);
 

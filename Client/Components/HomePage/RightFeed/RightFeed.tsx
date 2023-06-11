@@ -7,7 +7,7 @@ import Sponsers from "./Sponsers";
 import FriendsList from "./FriendsList";
 import Axios from "../../Axios/Axios";
 
-const RightFeed = () => {
+const RightFeed = ({ UserSocket }: { UserSocket: any }) => {
   const Mode = useSelector((State: any) => State.Mode);
   const [FriendList, setFriendList] = React.useState([]);
   let Theme = useMemo(() => {
@@ -37,7 +37,7 @@ const RightFeed = () => {
       <div className="max-h-[30vh] overflow-scroll rounded-md" style={{ backgroundColor: Theme.Palette.Background.Alt }}>
       <p className="font-medium p-3">Friends List</p>
       {FriendList.map((Each, Ind) => {
-        return <FriendsList Friends={Each} key={Ind} Controls={true} />;
+        return <FriendsList Friends={Each} key={Ind} Controls={true} UserSocket={UserSocket} />;
       })}
       </div>
     </div>

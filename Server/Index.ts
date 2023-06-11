@@ -242,14 +242,34 @@ App.patch("/addfriend", Upload.single("Image"), async (Req, Res) => {
     Res.status(400).json({ Error: "Unable to Add Friend" });
   }
 });
+
+App.patch("/declinerequest", Upload.single("Image"), async (Req, Res) => {
+  try {
+    const { UserId, FriendId } = Req.body;
+
+    await User.updateOne(
+      { _id: UserId },
+      { $pull: { Requests: { $in: FriendId } } }
+    );
+
+    let Updated = await User.findOne({ _id: UserId });
+    Res.status(201).json(Updated);
+  } catch (Error) {
+    Res.status(400).json({ Error: "Unable to Decline Request" });
+  }
+});
+
 App.patch("/sendrequest", Upload.single("Image"), async (Req, Res) => {
   try {
     const { UserId, FriendId } = Req.body;
-    if (!(await User.findOne({ _id: UserId, Requests: FriendId }))) {
+    console.log(UserId, FriendId);
+    let Ress = await User.findOne({ _id: FriendId });
+
+    if (Ress?.Requests.includes(UserId)) {
+      Res.status(201).json({ Message: "Request Already Sent" });
+    } else {
       await User.updateOne({ _id: FriendId }, { $push: { Requests: UserId } });
       Res.status(201).json({ Message: "Request Sent Successfuly" });
-    } else {
-      Res.status(201).json({ Message: "Request Already Sent" });
     }
   } catch (Error) {
     Res.status(400).json({ Error: "Unable to Send Request" });
@@ -259,9 +279,9 @@ App.patch("/removefriend", Upload.single("Image"), async (Req, Res) => {
   try {
     const { UserId, FriendId } = Req.body;
     await User.updateOne({ _id: UserId }, { $pull: { Friends: FriendId } });
+    await User.updateOne({ _id: FriendId }, { $pull: { Friends: UserId } });
 
     let Updated = await User.findOne({ _id: UserId });
-    console.log(UserId, FriendId);
     Res.status(201).json(Updated);
   } catch (Error) {
     Res.status(400).json({ Error: "Unable to Add Friend" });
@@ -515,10 +535,6 @@ type NotificationModel = {
 
 let Arr: { UserId: string; SocketId: string }[] = [];
 let TempArr: { SenderId: string; ReceiverId: string; SocketId: string }[] = [];
-let Notifications = { Unread: [], Read: [] } as {
-  Unread: NotificationModel[];
-  Read: NotificationModel[];
-};
 
 io.on("connection", (Socket: any) => {
   Socket.join(Socket.id);
@@ -568,11 +584,6 @@ io.on("connection", (Socket: any) => {
       Friends: string[];
       Type: number;
     }) => {
-      Notifications.Unread.push({
-        SenderId,
-        Type,
-        SocketId: Socket.id,
-      });
       Friends.map((Friend: any) => {
         let GetUser = Arr.find((User) => User?.UserId === Friend);
         if (GetUser) {
@@ -587,8 +598,6 @@ io.on("connection", (Socket: any) => {
   );
 
   Socket.on("Clear-Notifications", ({ UserId }: any) => {
-    Notifications.Unread = [];
-    Notifications.Read = [];
     let GetUser = Arr.find((User) => User?.UserId === UserId);
     if (GetUser) {
       io.to(GetUser?.SocketId).emit("Get-Cleared");
@@ -625,21 +634,30 @@ io.on("connection", (Socket: any) => {
     }
   );
 
-  Socket.on("Send-Request", async ({ ToID }: any) => {
-    let GetUser = Arr.find((User) => User?.UserId == ToID);
-    if (GetUser) {
-      let Updated = await User.findOne({ _id: ToID });
-      if (Updated) {
-        io.to(GetUser?.SocketId).emit("Take-Request", { Updated });
+  Socket.on(
+    "Send-Request",
+    async ({ ToID, Bell }: { ToID: string; Bell: boolean }) => {
+      let GetUser = Arr.find((User) => User?.UserId == ToID);
+      if (GetUser) {
+        let Updated = await User.findOne({ _id: ToID });
+        if (Updated) {
+          io.to(GetUser?.SocketId).emit("Take-Request", { Updated, Bell });
+        }
       }
     }
-  });
+  );
 
   Socket.on(
     "Update-Both-Friendship",
-    async ({ RealUser, Friend }: { RealUser: string; Friend: string }) => {
-      console.log("Good");
-      console.log(RealUser, Friend);
+    async ({
+      RealUser,
+      Friend,
+      Bell,
+    }: {
+      RealUser: string;
+      Friend: string;
+      Bell: boolean;
+    }) => {
       let GetUser = Arr.find((User) => User?.UserId == RealUser);
       let GetFriend = Arr.find((User) => User?.UserId == Friend);
 
@@ -647,7 +665,10 @@ io.on("connection", (Socket: any) => {
       let UpdatedFriend = await User.findOne({ _id: Friend });
 
       if (GetUser && GetFriend) {
-        io.to(GetUser?.SocketId).emit("Take-Request", { Updated: UpdatedUser });
+        io.to(GetUser?.SocketId).emit("Take-Request", {
+          Updated: UpdatedUser,
+          Bell,
+        });
         io.to(GetFriend?.SocketId).emit("Take-Both-Friendship", {
           Updated: UpdatedFriend,
         });

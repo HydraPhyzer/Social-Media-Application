@@ -60,7 +60,6 @@ export default function CustomizedMenus() {
 
   React.useEffect(() => {
     setLoggedInUser(User);
-    console.log(User);
   }, [User]);
 
   let Dispatch = useDispatch();

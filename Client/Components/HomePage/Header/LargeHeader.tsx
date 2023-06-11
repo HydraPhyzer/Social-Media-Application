@@ -6,7 +6,12 @@ import Dialog from "./Dialog";
 import { Badge, createTheme, IconButton, ThemeOptions } from "@mui/material";
 import Avatar from "../../Avatar/Avatar";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { SetMode, SetNotifications } from "../../../Redux/AuthReducer";
+import {
+  ClearNotification,
+  ManageNotifications,
+  SetMode,
+  SetNotifications,
+} from "../../../Redux/AuthReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
@@ -33,6 +38,7 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
       ThemeSettings(Mode) as unknown as ThemeOptions
     ) as CustomTheme;
   }, [Mode]);
+
   let SetMod = () => {
     Dispatch(SetMode());
   };
@@ -49,7 +55,7 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
       setSearchUser([]);
     }
   };
-  let Notifications = useSelector((State: any) => State.Notifications);
+  let Notifications: any = useSelector((State: any) => State.Notifications);
 
   useEffect(() => {
     UserSocket?.on(
@@ -63,13 +69,13 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
         Type: any;
         SocketId: string;
       }) => {
+        let Val:any[]=Notifications.Unread
+        let Hola=Notifications.Unread.concat({ SenderId, Type, SocketId })
+        console.log("Known",...Notifications.Unread)
+        console.log("Unknows",{ SenderId, Type, SocketId })
+
         Dispatch(
-          SetNotifications({
-            Notification: {
-              ...Notifications,
-              Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
-            },
-          })
+          SetNotifications({NewNotification:{SenderId,Type,SocketId}})
         );
       }
     );
@@ -80,28 +86,18 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
   }, [Notifications]);
 
   UserSocket?.on("Get-Cleared", () => {
-    Dispatch(SetNotifications({ Notification: { Unread: [], Read: [] } }));
+    // Dispatch(SetNotifications({ Notification: { Unread: [], Read: [] } }));
+    Dispatch(ClearNotification());
   });
 
   useEffect(() => {
-    ShowNoti == false &&
-      Dispatch(
-        SetNotifications({
-          Notification: {
-            ...Notifications,
-            Read: [...Notifications.Read, ...Notifications.Unread],
-            Unread: [],
-          },
-        })
-      );
-      ShowNoti == false && console.log("ShowNoti",UserSpec);
+    ShowNoti == false && Dispatch(ManageNotifications());
   }, [ShowNoti]);
 
   let GetUserSpecs = async () => {
     try {
       Notifications.Unread.map(async (id: any) => {
         let Arr: any = [];
-        console.log(id);
         await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
           Arr.push(Data);
         });
@@ -169,7 +165,7 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
                 display: SearchedUser.length > 0 ? "flex" : "none",
               }}
             >
-              {SearchedUser.map((User: any,Ind:any) => {
+              {SearchedUser.map((User: any, Ind: any) => {
                 return (
                   <div
                     onClick={() => {
@@ -257,7 +253,7 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
                         <p className="text-white">
                           {User?.Type == 1
                             ? "Posted Something"
-                            : User?.Type == 2 && "Sent You Message"}
+                            : User?.Type == 2 && "Send You Request"}
                         </p>
                       </p>
                     </div>
@@ -291,7 +287,7 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
                         <p className="text-white">
                           {User?.Type == 1
                             ? "Posted Something"
-                            : User?.Type == 2 && "Sent You Message"}
+                            : User?.Type == 2 && "Send You Request"}
                         </p>
                       </p>
                     </div>
