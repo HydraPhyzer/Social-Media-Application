@@ -11,11 +11,12 @@ import { appendFile } from "fs";
 import process from "process";
 import { v4 as uuidv4 } from "uuid";
 import { Server } from "socket.io";
+import mongoose from "mongoose";
 
 import bcrypt from "bcrypt";
 import console from "console";
-import User from "./Schema/User";
 import Post from "./Schema/Post";
+import { User, Notification } from "./Schema/User";
 import Chat from "./Schema/Chat";
 import { VerifyToken } from "./Token/JWT";
 // Require Statements
@@ -261,17 +262,31 @@ App.patch("/declinerequest", Upload.single("Image"), async (Req, Res) => {
 
 App.patch("/sendrequest", Upload.single("Image"), async (Req, Res) => {
   try {
-    const { UserId, FriendId } = Req.body;
+    const { UserId, FriendId, Type } = Req.body;
     console.log(UserId, FriendId);
     let Ress = await User.findOne({ _id: FriendId });
 
     if (Ress?.Requests.includes(UserId)) {
       Res.status(201).json({ Message: "Request Already Sent" });
     } else {
+      let MyNoti = await new Notification({
+        SenderID: new mongoose.Types.ObjectId(UserId),
+        Type,
+      }).save();
+
+      await User.updateOne(
+        { _id: FriendId },
+        {
+          $push: {
+            "Notifications.Unread": MyNoti,
+          },
+        }
+      );
       await User.updateOne({ _id: FriendId }, { $push: { Requests: UserId } });
       Res.status(201).json({ Message: "Request Sent Successfuly" });
     }
   } catch (Error) {
+    console.log(Error);
     Res.status(400).json({ Error: "Unable to Send Request" });
   }
 });
@@ -574,37 +589,6 @@ io.on("connection", (Socket: any) => {
   });
 
   Socket.on(
-    "New-Notification",
-    ({
-      SenderId,
-      Friends,
-      Type,
-    }: {
-      SenderId: string;
-      Friends: string[];
-      Type: number;
-    }) => {
-      Friends.map((Friend: any) => {
-        let GetUser = Arr.find((User) => User?.UserId === Friend);
-        if (GetUser) {
-          io.to(GetUser?.SocketId).emit("Get-Notifications", {
-            SenderId,
-            Type,
-            SocketId: Socket.id,
-          });
-        }
-      });
-    }
-  );
-
-  Socket.on("Clear-Notifications", ({ UserId }: any) => {
-    let GetUser = Arr.find((User) => User?.UserId === UserId);
-    if (GetUser) {
-      io.to(GetUser?.SocketId).emit("Get-Cleared");
-    }
-  });
-
-  Socket.on(
     "Send-Chat",
     ({ Receiver, Sender }: { Receiver: any; Sender: any }) => {
       console.log("Hello From ", Sender);
@@ -675,6 +659,116 @@ io.on("connection", (Socket: any) => {
       }
     }
   );
+
+  Socket.on("Send-Request-Notification", async ({ ToID }: { ToID: string }) => {
+    let GetUser = Arr.find((User) => User?.UserId == ToID);
+    if (GetUser) {
+      User.findById({ _id: ToID })
+        .populate({
+          path: "Notifications.Unread",
+          populate: {
+            path: "SenderID",
+            select: "FirstName LastName PicturePath _id", // Select the fields you want to retrieve from the SenderID user
+          },
+        })
+        .populate({
+          path: "Notifications.Read",
+          populate: {
+            path: "SenderID",
+            select: "FirstName LastName PicturePath _id", // Select the fields you want to retrieve from the SenderID user
+          },
+        })
+        .exec((err, User) => {
+          if (err) {
+          }
+          io.to(GetUser?.SocketId).emit("Receive-Request-Notification", {
+            MyNotifications: User?.Notifications,
+          });
+        });
+    }
+
+    Socket?.on(
+      "Clear-Notifications",
+      async ({ UserId }: { UserId: string }) => {
+        let GetUser = Arr.find((User) => User?.UserId == UserId);
+        if (GetUser) {
+          const MyUser = await User.findById(UserId);
+          const notificationIds = [
+            ...(MyUser?.Notifications?.Read ?? []).map(
+              (notification) => notification?._id
+            ),
+            ...(MyUser?.Notifications?.Unread ?? []).map(
+              (notification) => notification?._id
+            ),
+          ];
+
+          await Notification.deleteMany({ _id: { $in: notificationIds } })
+            .then(async () => {
+              await User.updateOne(
+                { _id: UserId },
+                {
+                  $set: {
+                    "Notifications.Read": [],
+                    "Notifications.Unread": [],
+                  },
+                }
+              );
+            })
+            .then(async () => {
+              const AgainMyUser = await User.findById(UserId);
+              io.to(GetUser?.SocketId).emit("Receive-Request-Notification", {
+                MyNotifications: AgainMyUser?.Notifications,
+              });
+            });
+        }
+      }
+    );
+
+    Socket?.on(
+      "Manage-Notification",
+      async ({ UserId }: { UserId: string }) => {
+        let GetUser = Arr.find((User) => User?.UserId == UserId);
+        if (GetUser) {
+          await User.updateOne({ _id: UserId }, [
+            {
+              $set: {
+                "Notifications.Read": {
+                  $concatArrays: [
+                    "$Notifications.Read",
+                    "$Notifications.Unread",
+                  ],
+                },
+                "Notifications.Unread": [],
+              },
+            },
+          ]).then(() => {
+            User.findById({ _id: ToID })
+              .populate({
+                path: "Notifications.Unread",
+                populate: {
+                  path: "SenderID",
+                  select: "FirstName LastName PicturePath _id", // Select the fields you want to retrieve from the SenderID user
+                },
+              })
+              .populate({
+                path: "Notifications.Read",
+                populate: {
+                  path: "SenderID",
+                  select: "FirstName LastName PicturePath _id", // Select the fields you want to retrieve from the SenderID user
+                },
+              })
+              .exec((err, User) => {
+                if (err) {
+                }
+                io.to(GetUser?.SocketId).emit("Receive-Request-Notification", {
+                  MyNotifications: User?.Notifications,
+                });
+              });
+          });
+        }
+      }
+    );
+  });
 
   Socket.on("disconnect", () => {
     Arr = Arr.filter((User) => User?.SocketId !== Socket?.id);

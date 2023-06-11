@@ -1,4 +1,15 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Mongoose, Schema } from "mongoose";
+
+const NotificationSchema = new Schema({
+  SenderID: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
+  Type: {
+    type: Number,
+  },
+});
+
 const UserSchema = new Schema(
   {
     FirstName: {
@@ -26,7 +37,7 @@ const UserSchema = new Schema(
       type: Array,
       default: [],
     },
-    Requests :{
+    Requests: {
       type: Array,
       default: [],
     },
@@ -34,8 +45,31 @@ const UserSchema = new Schema(
       type: String,
       default: "",
     },
+    // Notifications: {
+    //   Unread: {
+    //     type: [{ SenderID: String, Type: Number }],
+    //     default: [],
+    //   },
+    //   Read: {
+    //     type: [{ SenderID: String, Type: Number }],
+    //     default: [],
+    //   },
+    // },
+    Notifications: {
+      Unread: {
+        type: [{ type: Schema.Types.ObjectId, ref: "Notification" }],
+        default: [],
+      },
+      Read: {
+        type: [{ type: Schema.Types.ObjectId, ref: "Notification" }],
+        default: [],
+      },
+    },
   },
   { timestamps: true }
 );
+
+const Notification = mongoose.model("Notification", NotificationSchema);
 const User = mongoose.model("User", UserSchema);
-export default User;
+// export default User;
+export { User, Notification };

@@ -63,6 +63,7 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
 
     FrmData.append("UserId", User?._id);
     FrmData.append("FriendId", SinglePost?.UserId);
+    FrmData.append("Type", 2);
     try {
       await Axios.patch("/sendrequest", FrmData, {
         headers: {
@@ -77,10 +78,8 @@ const DisplayPosts = ({ SinglePost, UserSocket }: any) => {
         });
 
         UserSocket?.emit("Send-Request", { ToID: SinglePost?.UserId });
-        UserSocket?.emit("New-Notification", {
-          SenderId: User?._id,
-          Friends: [SinglePost?.UserId],
-          Type: 2,
+        UserSocket?.emit("Send-Request-Notification", {
+          ToID: SinglePost?.UserId,
         });
       });
     } catch (Error: any) {

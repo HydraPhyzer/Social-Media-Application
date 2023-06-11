@@ -1,11 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-type NotificationModel = {
-  SenderId: string;
-  ReceiverId?: string;
-  Type: number;
-  SocketId: string;
-};
 const InitialState = {
   Mode: "Light",
   User: null,
@@ -14,8 +7,6 @@ const InitialState = {
   Chats: {},
   OnlineUsers: [],
   TypingUsers: [],
-  Notifications: { Unread: [], Read: [] },
-  UserSocket: null,
 };
 
 export const AuthSlice: any = createSlice({
@@ -60,22 +51,6 @@ export const AuthSlice: any = createSlice({
     SetTypingUsers: (State, Action) => {
       State.TypingUsers = Action.payload.TypingUser;
     },
-
-    SetNotifications: (State, Action) => {
-      State.Notifications.Unread=State.Notifications.Unread.concat({...Action.payload.NewNotification}) 
-    },
-
-    ManageNotifications: (State) => {
-      (State.Notifications.Read = [
-        ...State.Notifications.Read,
-        ...State.Notifications.Unread,
-      ]),
-        (State.Notifications.Unread = []);
-    },
-    ClearNotification: (State) => {
-      State.Notifications.Unread = [];
-      State.Notifications.Read = [];
-    },
   },
 });
 
@@ -89,8 +64,5 @@ export const {
   SetChats,
   SetOnlineUsers,
   SetTypingUsers,
-  SetNotifications,
-  ManageNotifications,
-  ClearNotification,
 } = AuthSlice.actions;
 export default AuthSlice.reducer;

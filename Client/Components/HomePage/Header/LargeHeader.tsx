@@ -6,12 +6,7 @@ import Dialog from "./Dialog";
 import { Badge, createTheme, IconButton, ThemeOptions } from "@mui/material";
 import Avatar from "../../Avatar/Avatar";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import {
-  ClearNotification,
-  ManageNotifications,
-  SetMode,
-  SetNotifications,
-} from "../../../Redux/AuthReducer";
+import { SetMode } from "../../../Redux/AuthReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
@@ -26,6 +21,8 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
     Read: [] as any[],
   });
   let [ShowNoti, setShowNoti] = React.useState(false);
+  let [Notifications, setNotifications] = React.useState<any>(null);
+
   const User = useSelector((State: any) => {
     return State?.User;
   });
@@ -55,70 +52,20 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
       setSearchUser([]);
     }
   };
-  let Notifications: any = useSelector((State: any) => State.Notifications);
 
   useEffect(() => {
-    UserSocket?.on(
-      "Get-Notifications",
-      ({
-        SenderId,
-        Type,
-        SocketId,
-      }: {
-        SenderId: string;
-        Type: any;
-        SocketId: string;
-      }) => {
-        let Val:any[]=Notifications.Unread
-        let Hola=Notifications.Unread.concat({ SenderId, Type, SocketId })
-        console.log("Known",...Notifications.Unread)
-        console.log("Unknows",{ SenderId, Type, SocketId })
+    UserSocket?.emit("Send-Request-Notification", {
+      ToID: User?._id,
+    });
 
-        Dispatch(
-          SetNotifications({NewNotification:{SenderId,Type,SocketId}})
-        );
+    UserSocket?.on(
+      "Receive-Request-Notification",
+      ({ MyNotifications }: { MyNotifications: any }) => {
+        console.log(MyNotifications);
+        setNotifications(MyNotifications);
       }
     );
   }, []);
-
-  useEffect(() => {
-    GetUserSpecs();
-  }, [Notifications]);
-
-  UserSocket?.on("Get-Cleared", () => {
-    // Dispatch(SetNotifications({ Notification: { Unread: [], Read: [] } }));
-    Dispatch(ClearNotification());
-  });
-
-  useEffect(() => {
-    ShowNoti == false && Dispatch(ManageNotifications());
-  }, [ShowNoti]);
-
-  let GetUserSpecs = async () => {
-    try {
-      Notifications.Unread.map(async (id: any) => {
-        let Arr: any = [];
-        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
-          Arr.push(Data);
-        });
-        SetUserSpec((Prev: any) => {
-          return { ...Prev, Unread: [...Arr] };
-        });
-      });
-
-      Notifications.Read.map(async (id: any) => {
-        let Arr: any = [];
-        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
-          Arr.push(Data);
-        });
-        SetUserSpec((Prev: any) => {
-          return { ...Prev, Read: [...Arr] };
-        });
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <div
@@ -206,114 +153,117 @@ const LargeHeader: any = ({ UserSocket }: { UserSocket: any }) => {
           style={{ color: Theme.Palette.Primary.Main, position: "relative" }}
           onClick={() => {
             setShowNoti(!ShowNoti);
-            ShowNoti && GetUserSpecs();
+            ShowNoti == true &&
+              UserSocket?.emit("Manage-Notification", {
+                UserId: User?._id,
+              });
           }}
         >
           <Badge badgeContent={Notifications?.Unread.length} color="warning">
             <CircleNotificationsIcon className="Bell" />
           </Badge>
 
-          {ShowNoti && (
-            <div
-              className="rounded-md p-2 flex flex-col gap-y-2 shadow-2xl"
-              style={{
-                width: "52vh",
-                maxHeight: "40vh",
-                overflow: "scroll",
-                position: "absolute",
-                top: 45,
-                left: 0,
-                background: Theme.Palette.Background.Default,
-                // display: Notifications?.Unread.length > 0  ? "flex" : "none",
-              }}
-            >
-              <>
-                {Notifications?.Unread.length > 0 && (
-                  <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
-                    Newer 🔔
-                  </small>
-                )}
-                {Notifications?.Unread.map((User: any) => {
-                  let Data = UserSpec.Unread.find(
-                    (id: any) => id?.data?._id == User?.SenderId
-                  );
-                  return (
-                    <div
-                      onClick={() => {
-                        Router.push(`/search/${User?._id}`);
-                        setSearchUser([]);
-                      }}
-                      className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-500 px-1 rounded-md"
-                    >
-                      <Avatar
-                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
-                      />
-                      <p className="text-sm mb-2">
-                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
-                        <p className="text-white">
-                          {User?.Type == 1
-                            ? "Posted Something"
-                            : User?.Type == 2 && "Send You Request"}
+          <>
+            {ShowNoti && (
+              <div
+                className="rounded-md p-2 flex flex-col gap-y-2 shadow-2xl"
+                style={{
+                  width: "52vh",
+                  maxHeight: "40vh",
+                  overflow: "scroll",
+                  position: "absolute",
+                  top: 45,
+                  left: 0,
+                  background: Theme.Palette.Background.Default,
+                  // display: Notifications?.Unread.length > 0  ? "flex" : "none",
+                }}
+              >
+                <>
+                  {Notifications?.Unread.length > 0 && (
+                    <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
+                      Newer 🔔
+                    </small>
+                  )}
+                  {Notifications?.Unread.map((User: any) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          Router.push(`/search/${User?._id}`);
+                          setSearchUser([]);
+                        }}
+                        className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-500 px-1 rounded-md"
+                      >
+                        <Avatar
+                          Path={`http://localhost:8001/Assets/${User?.SenderID?.PicturePath}`}
+                        />
+                        <p className="text-sm mb-2">
+                          {User?.SenderID?.FirstName +
+                            " " +
+                            User?.SenderID?.LastName}
+                          <p className="text-white">
+                            {User?.Type == 1
+                              ? "Posted Something"
+                              : User?.Type == 2 && "Send You Request"}
+                          </p>
                         </p>
-                      </p>
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })}
 
-                {/* ======================== */}
+                  {/* ======================== */}
 
-                {Notifications?.Read.length > 0 && (
-                  <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
-                    Older 🔔
-                  </small>
-                )}
-                {Notifications?.Read.map((User: any) => {
-                  let Data = UserSpec.Read.find(
-                    (id: any) => id?.data?._id == User?.SenderId
-                  );
-                  return (
-                    <div
-                      onClick={() => {
-                        Router.push(`/search/${Data?.data?._id}`);
-                        setSearchUser([]);
-                      }}
-                      className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-800 px-1 rounded-md"
-                    >
-                      <Avatar
-                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
-                      />
-                      <p className="text-sm mb-2">
-                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
-                        <p className="text-white">
-                          {User?.Type == 1
-                            ? "Posted Something"
-                            : User?.Type == 2 && "Send You Request"}
+                  {Notifications?.Read.length > 0 && (
+                    <small className="text-xs text-start text-black bg-white w-fit px-1 rounded-sm">
+                      Older 🔔
+                    </small>
+                  )}
+                  {Notifications?.Read.map((User: any) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          Router.push(`/search/${User?.SenderID?._id}`);
+                          setSearchUser([]);
+                        }}
+                        className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-800 px-1 rounded-md"
+                      >
+                        <Avatar
+                          Path={`http://localhost:8001/Assets/${User?.SenderID?.PicturePath}`}
+                        />
+                        <p className="text-sm mb-2">
+                          {User?.SenderID?.FirstName +
+                            " " +
+                            User?.SenderID?.LastName}
+                          <p className="text-white">
+                            {User?.Type == 1
+                              ? "Posted Something"
+                              : User?.Type == 2 && "Send You Request"}
+                          </p>
                         </p>
-                      </p>
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })}
 
-                {Notifications?.Unread.length == 0 &&
-                Notifications?.Read.length == 0 ? (
-                  <p className="text-xs text-start text-white my-auto">
-                    No Notifications to Read Yet{" "}
-                  </p>
-                ) : (
-                  <p
-                    onClick={() => {
-                      UserSocket?.emit("Clear-Notifications", {
-                        UserId: User._id,
-                      });
-                    }}
-                    className="text-white sticky bottom-0 left-[100%] text-xs bg-red-500 text-center  p-1 w-fit rounded-sm flex items-center"
-                  >
-                    Clear
-                  </p>
-                )}
-              </>
-            </div>
-          )}
+                  {Notifications?.Unread.length == 0 &&
+                  Notifications?.Read.length == 0 ? (
+                    <p className="text-xs text-start text-white my-auto">
+                      No Notifications to Read Yet{" "}
+                    </p>
+                  ) : (
+                    <p
+                      onClick={() => {
+                        UserSocket?.emit("Clear-Notifications", {
+                          UserId: User._id,
+                        });
+                      }}
+                      className="text-white sticky bottom-0 left-[100%] text-xs bg-red-500 text-center  p-1 w-fit rounded-sm flex items-center"
+                    >
+                      Clear
+                    </p>
+                  )}
+                </>
+              </div>
+            )}
+          </>
         </IconButton>
         <AppInfo />
 
