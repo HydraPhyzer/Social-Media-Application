@@ -3,9 +3,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import ChatIcon from "@mui/icons-material/Chat";
 import Dialog from "./Dialog";
-import { Badge, createTheme, Divider, IconButton, ThemeOptions } from "@mui/material";
+import {
+  Badge,
+  createTheme,
+  Divider,
+  IconButton,
+  ThemeOptions,
+} from "@mui/material";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { SetMode, SetNotifications } from "../../../Redux/AuthReducer";
+import { SetMode } from "../../../Redux/AuthReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeSettings } from "../../Themes/Themes";
 import { CustomTheme } from "../../Themes/CustomTheme";
@@ -16,6 +22,7 @@ import { useRouter } from "next/router";
 import Avatar from "../../Avatar/Avatar";
 
 const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
+  let [Notifications, setNotifications] = React.useState<any>(null);
   const [Show, setShow] = React.useState(false);
   let [SearchedUser, setSearchUser] = React.useState([]);
   let [ShowNoti, setShowNoti] = React.useState(false);
@@ -38,45 +45,30 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
     Dispatch(SetMode());
   };
 
-  let Notifications = useSelector((State: any) => State.Notifications);
   React.useEffect(() => {
+    UserSocket?.emit("Send-Request-Notification", {
+      ToID: User?._id,
+    });
+
     UserSocket?.on(
-      "Get-Notifications",
-      ({
-        SenderId,
-        Type,
-        SocketId,
-      }: {
-        SenderId: string;
-        Type: any;
-        SocketId: string;
-      }) => {
-        Dispatch(
-          SetNotifications({
-            Notification: {
-              ...Notifications,
-              Unread: [...Notifications.Unread, { SenderId, Type, SocketId }],
-            },
-          })
-        );
+      "Receive-Request-Notification",
+      ({ MyNotifications }: { MyNotifications: any }) => {
+        console.log(MyNotifications);
+        setNotifications(MyNotifications);
       }
     );
   }, []);
 
-  
-  UserSocket?.on("Get-Cleared", () => {
-    Dispatch(SetNotifications({ Notification: { Unread: [], Read: [] } }));
-  });
-  
-  React.useEffect(() => {
-    GetUserSpecs();
-  }, [Notifications]);
+  // React.useEffect(() => {
+  //   GetUserSpecs();
+  // }, [Notifications]);
+
   let GetUserSpecs = async () => {
     try {
       Notifications.Unread.map(async (id: any) => {
         let Arr: any = [];
         console.log(id);
-        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
+        await Axios.get(`/getuser/${id?.SenderID?._id}`).then((Data: any) => {
           Arr.push(Data);
         });
         SetUserSpec((Prev: any) => {
@@ -86,7 +78,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
 
       Notifications.Read.map(async (id: any) => {
         let Arr: any = [];
-        await Axios.get(`/getuser/${id?.SenderId}`).then((Data: any) => {
+        await Axios.get(`/getuser/${id?.SenderID?._id}`).then((Data: any) => {
           Arr.push(Data);
         });
         SetUserSpec((Prev: any) => {
@@ -172,7 +164,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                 display: SearchedUser.length > 0 ? "flex" : "none",
               }}
             >
-              {SearchedUser.map((User: any,Ind:any) => {
+              {SearchedUser.map((User: any, Ind: any) => {
                 return (
                   <div
                     onClick={() => {
@@ -225,9 +217,12 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
               }}
             >
               {/* <CircleNotificationsIcon /> */}
-              <Badge badgeContent={Notifications?.Unread.length} color="warning">
-            <CircleNotificationsIcon className="Bell" />
-          </Badge>
+              <Badge
+                badgeContent={Notifications?.Unread.length}
+                color="warning"
+              >
+                <CircleNotificationsIcon className="Bell" />
+              </Badge>
             </IconButton>
             <IconButton
               className="w-[25%]"
@@ -251,7 +246,7 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
               className="rounded-md p-2 flex flex-col gap-y-2 shadow-2xl my-2"
               style={{
                 width: "95vw",
-                zIndex:100000,
+                zIndex: 100000,
                 maxHeight: "40vh",
                 overflow: "scroll",
                 top: 45,
@@ -265,9 +260,6 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                   </small>
                 )}
                 {Notifications?.Unread.map((User: any) => {
-                  let Data = UserSpec.Unread.find(
-                    (id: any) => id?.data?._id == User?.SenderId
-                  );
                   return (
                     <div
                       onClick={() => {
@@ -277,14 +269,16 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                       className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-500 px-1 rounded-md"
                     >
                       <Avatar
-                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
+                        Path={`http://localhost:8001/Assets/${User?.SenderID?.PicturePath}`}
                       />
                       <p className="text-sm mb-2">
-                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
+                        {User?.SenderID?.FirstName +
+                          " " +
+                          User?.SenderID?.LastName}
                         <p className="text-white">
                           {User?.Type == 1
                             ? "Posted Something"
-                            : User?.Type == 2 && "Sent You Message"}
+                            : User?.Type == 2 && "Send You Request"}
                         </p>
                       </p>
                     </div>
@@ -299,26 +293,25 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
                   </small>
                 )}
                 {Notifications?.Read.map((User: any) => {
-                  let Data = UserSpec.Read.find(
-                    (id: any) => id?.data?._id == User?.SenderId
-                  );
                   return (
                     <div
                       onClick={() => {
-                        Router.push(`/search/${Data?.data?._id}`);
+                        Router.push(`/search/${User?.SenderID?._id}`);
                         setSearchUser([]);
                       }}
                       className="flex gap-2 items-center hover:cursor-pointer text-justify border-gray-500 py-2 bg-gray-800 px-1 rounded-md"
                     >
                       <Avatar
-                        Path={`http://localhost:8001/Assets/${Data?.data?.PicturePath}`}
+                        Path={`http://localhost:8001/Assets/${User?.SenderID?.PicturePath}`}
                       />
                       <p className="text-sm mb-2">
-                        {Data?.data?.FirstName + " " + Data?.data?.LastName}
+                        {User?.SenderID?.FirstName +
+                          " " +
+                          User?.SenderID?.LastName}
                         <p className="text-white">
                           {User?.Type == 1
                             ? "Posted Something"
-                            : User?.Type == 2 && "Sent You Request"}
+                            : User?.Type == 2 && "Send You Request"}
                         </p>
                       </p>
                     </div>
