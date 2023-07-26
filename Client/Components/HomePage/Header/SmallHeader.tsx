@@ -67,7 +67,6 @@ const SmallHeader = ({ UserSocket }: { UserSocket: any }) => {
     try {
       Notifications.Unread.map(async (id: any) => {
         let Arr: any = [];
-        console.log(id);
         await Axios.get(`/getuser/${id?.SenderID?._id}`).then((Data: any) => {
           Arr.push(Data);
         });

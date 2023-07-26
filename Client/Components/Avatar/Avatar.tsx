@@ -7,6 +7,7 @@ type PropType = {
   Path: string;
   Status?: boolean;
 };
+
 const CustomBadge = styled(Badge)(({}) => ({
   "& .MuiBadge-badge": {
     backgroundColor: "#2ecc71",

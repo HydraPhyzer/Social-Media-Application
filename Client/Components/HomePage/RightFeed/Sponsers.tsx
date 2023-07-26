@@ -27,7 +27,6 @@ const Sponsers = () => {
     GetAll();
   }, []);
 
-
   return (
     // <div>
     <div

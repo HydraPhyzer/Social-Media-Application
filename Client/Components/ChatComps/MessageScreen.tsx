@@ -236,13 +236,14 @@ const MessageScreen = ({ UserSocket }: { UserSocket: any }) => {
           >
             {Chats &&
               Chats?.Messages &&
-              Chats?.Messages.map((Each: any) => {
+              Chats?.Messages.map((Each: any,Key:number) => {
                 return (
                   <section
                     style={{
                       width: "100%",
                       justifyContent: Each?.Owner == User._id ? "end" : "start",
                     }}
+                    key={Key}
                     ref={Scroll}
                     className="flex"
                   >
